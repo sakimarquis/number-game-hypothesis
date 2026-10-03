@@ -59,8 +59,6 @@ Retryable transport failures receive bounded failed-key sweeps while successful 
 
 Empty or partial answers can result from exhausted output budgets, especially on provider-managed thinking paths. Hypothesis parse failures are recorded in `data/hypothesis_eval_parse_failures.json` or `data/hypothesis_generation_parse_failures.json`. Posterior vector validity and recovery semantics are defined in [tasks/README.md](../tasks/README.md#posterior-predict-membership).
 
-## Extend or check a backend
+## Extend a backend
 
 Implement the asynchronous methods in [base.py](base.py), declare capabilities explicitly, and wire the backend into [create_backend](../backends/__init__.py), the backend registry, and model bindings. Implement `score_binary()` and shared-thinking hooks only when supported. Standard Chat Completions gateways should use the existing `oai` provider.
-
-For HF thinking diagnostics, run `uv run -m backends.check_hf_thinking`. This loads reference models sequentially and checks thinking boundaries, multi-turn rendering, padded batches, generated thinking text, and post-thinking Yes/No scores; it requires model downloads and a suitable GPU.

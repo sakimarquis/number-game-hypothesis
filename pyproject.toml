@@ -24,9 +24,6 @@ cu126 = ["torch"]
 cu128 = ["torch"]
 cu130 = ["torch"]
 
-[dependency-groups]
-dev = ["pytest"]
-
 [tool.uv]
 package = false
 conflicts = [
