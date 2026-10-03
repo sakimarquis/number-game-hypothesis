@@ -1,0 +1,161 @@
+# Model registry: alias -> {id, display, default_backend, backends}
+# Each entry declares supported backends plus per-backend kwargs.
+
+# -- OpenAI -------------------------------------------------------
+gpt54:
+  id: "gpt-5.4"
+  display: "GPT54"
+  default_backend: openai
+  backends: {openai: {}}
+
+gpt54-mini:
+  id: "gpt-5.4-mini"
+  display: "GPT54_Mini"
+  default_backend: openai
+  backends: {openai: {}}
+
+# -- OpenRouter ---------------------------------------------------
+ox-alpha-high:
+  id: "stealth/ox-alpha"
+  display: "OxAlpha_High"
+  default_backend: openrouter
+  backends:
+    openrouter: {reasoning_effort: high, supports_logprobs: false, supports_json_schema: true}
+
+
+# -- OAI gateway ------------------------------------------------
+gpt56-luna:
+  id: "gpt-5.6-luna-none"
+  display: "GPT56_Luna"
+  default_backend: oai
+  backends: {oai: {}}
+
+gpt56-luna-high:
+  id: "gpt-5.6-luna-high"
+  display: "GPT56_Luna_thinking"
+  default_backend: oai
+  backends: {oai: {}}
+
+# -- Gemini Developer API ----------------------------------------
+gemini36-flash:
+  id: "gemini-3.6-flash"
+  display: "Gemini36_Flash"
+  default_backend: google_cloud
+  backends:
+    google_cloud: {api_key_env: GCP_Gemini, execution: batch, batch_priority: 1}
+
+
+# -- Gemma family (HF + local OpenAI-compatible server) ----------
+gemma4-e2b:
+  id: "google/gemma-4-E2B-it"
+  display: "Gemma4_E2B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 32, thinking_batch_size: 12}
+    local: {thinking_protocol: channel}
+
+gemma4-e4b:
+  id: "google/gemma-4-E4B-it"
+  display: "Gemma4_E4B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 24, thinking_batch_size: 8}
+    local: {thinking_protocol: channel}
+
+gemma4-31b:
+  id: "google/gemma-4-31B-it"
+  display: "Gemma4_31B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 8, thinking_batch_size: 2}
+    local: {thinking_protocol: channel}
+
+gemma4-a4b:
+  id: "google/gemma-4-26B-A4B-it"
+  display: "Gemma4_A4B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 20, thinking_batch_size: 8}
+    local: {thinking_protocol: channel}
+
+# -- Qwen family -------------------------------------------------
+qwen35-2b:
+  id: "Qwen/Qwen3.5-2B"
+  display: "Qwen35_2B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 32, thinking_batch_size: 12}
+    local: {thinking_protocol: text}
+
+qwen35-4b:
+  id: "Qwen/Qwen3.5-4B"
+  display: "Qwen35_4B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 24, thinking_batch_size: 8}
+    local: {thinking_protocol: text}
+    tinker:
+      renderer: "qwen3_5_disable_thinking"
+      thinking_renderer: "qwen3_5"
+
+qwen35-9b:
+  id: "Qwen/Qwen3.5-9B"
+  display: "Qwen35_9B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 16, thinking_batch_size: 4}
+    local: {thinking_protocol: text}
+
+qwen35-27b:
+  id: "Qwen/Qwen3.5-27B"
+  display: "Qwen35_27B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 8, thinking_batch_size: 2}
+    local: {thinking_protocol: text}
+    tinker:
+      renderer: "qwen3_5_disable_thinking"
+      thinking_renderer: "qwen3_5"
+
+qwen36_a3b:
+  id: "Qwen/Qwen3.6-35B-A3B"
+  display: "Qwen36_A3B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 24, thinking_batch_size: 8}
+    local: {thinking_protocol: text}
+    tinker:
+      renderer: "qwen3_5_disable_thinking"
+      thinking_renderer: "qwen3_5"
+
+# -- Tinker-default models, also runnable through local servers ---
+kimi-k26:
+  id: "moonshotai/Kimi-K2.6"
+  display: "Kimi_K26"
+  default_backend: tinker
+  backends:
+    tinker:
+      renderer: "kimi_k25_disable_thinking"
+      thinking_renderer: "kimi_k25"
+      tokenizer_trust_remote_code: true
+    local: {thinking_protocol: text}
+
+nemotron3-nano:
+  id: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+  display: "Nemotron3_Nano"
+  default_backend: tinker
+  backends:
+    tinker:
+      renderer: "nemotron3_disable_thinking"
+      thinking_renderer: "nemotron3"
+    local: {thinking_protocol: text}
+
+nemotron3-super:
+  id: "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16"
+  display: "Nemotron3_Super"
+  default_backend: tinker
+  backends:
+    tinker:
+      renderer: "nemotron3_disable_thinking"
+      thinking_renderer: "nemotron3"
+    local: {thinking_protocol: text}

@@ -1,0 +1,3031 @@
+id,set,descr
+62,47,Odd numbers
+62,3_ 33_ 99,numbers that are the same
+62,51_ 39_ 87,odd numbers
+62,64_ 96_ 24_ 56,even numbers
+62,42_ 62,numbers between 42 and 65
+389,75_ 95,numbers ending in 5
+389,3_ 33_ 99,multiples of 3
+389,47,prime numbers
+389,96_ 48,multiples of 12
+389,10_ 80,numbers ending in 0
+219,7_ 67,numbers that end in seven 
+219,28_ 13,numbers between 5 and 35
+219,10_ 80,multiples of ten
+219,7_ 31,odd numbers under 50
+219,73_ 35_ 53_ 59,numbers with fives or threes in them
+298,6_ 25,numbers under 30
+298,73,uneven numbers
+298,65_ 26_ 2,numbers under 65
+298,55_ 15_ 75_ 45,numbers ending in 5
+298,64_ 94_ 84,even numbers
+4,8_ 16,divisible by 8
+4,7,divisible by 7
+4,73,odd numbers
+4,11_ 26_ 74_ 2,numbers between 2 and 74
+4,65_ 26_ 2,numbers between 2 and 65
+344,64_ 96_ 24_ 56,numbers between 24 and 64
+344,3_ 33_ 99,odd numbers
+344,7_ 31,odd numbers with no multiples
+344,42_ 62,even numbers with between 42 and 62 then added to highest or lowest
+344,2,even numbers
+11,10_ 55_ 58,between 10-58
+11,55_ 15_ 75_ 45,ending in 5
+11,98_ 54_ 18,even numbers
+11,73,not sure
+11,64_ 94_ 84,ending in 4
+216,96_ 48,Divided by half
+216,2,even number
+216,73_ 35_ 53_ 59,uneven numbers
+216,7_ 31,uneven numbers
+216,42_ 62,add 20
+173,6_ 25,numbers between 6 and 25
+173,99_ 59_ 31_ 67,odd numbers?
+173,98_ 83,numbers between 83 and 98
+173,98_ 54_ 18,numbers ending in 4 or 8
+173,8_ 92,numbers divisible by 2
+295,28_ 13,numbers decrease in 15
+295,3_ 33_ 99,odd numbers
+295,47,nearest number of 50
+295,10_ 80,even numbers
+295,7_ 67,numbers between 5 and 70
+174,73_ 35_ 53_ 59,Ended in 3_5_or 9 (I might have missed a few_ sorry for that)
+174,69_ 19_ 85,Ended in 9 or 5
+174,10_ 80,Was multiply of five or ten
+174,42_ 62,Ended in 2
+174,7_ 67,Ended in 7
+337,69_ 19_ 85,decreasing then incresing
+337,7_ 67,last number should be 7
+337,2,multiple of 2
+337,51_ 39_ 87,multiple of 3
+337,75_ 95,multiple of 5
+349,10_ 80,Even
+349,96_ 48,Even
+349,75_ 95,Numbers that end with 5
+349,3_ 33_ 99,Numbers in 3''s
+349,73_ 35_ 53_ 59,Numbers ending in 3_ 5 or 9
+594,7_ 67,all numbers ending in seven
+594,64_ 96_ 24_ 56,all numbers ending in even numbers
+594,2,all even numbers
+594,28_ 13,numbers between 28 and 13
+594,59_ 14,numbers between 59 and 14
+363,10_ 80,Numbers times ten.
+363,75_ 95,Numbers times five.
+363,96_ 48,even numbers.
+363,59_ 14,Numbers between 14-59.
+363,3_ 33_ 99,Numbers including 3''s and 9''s.
+142,28_ 13,numbers between 10 and 40
+142,42_ 62,even numbers between 30 and 80
+142,59_ 14,numbers between 10 and 60
+142,96_ 48,numbers that are a multiple of 6
+142,51_ 39_ 87,odd numbers between 21 and 99
+527,8_ 92,even numbers
+527,11_ 26_ 74_ 2,numbers between 2 and 75
+527,6_ 25,numbers between 5 and 30
+527,55_ 15_ 75_ 45,odd numbers
+527,8_ 16,even numbers
+595,65_ 26_ 2,even numbers
+595,73,not sure
+595,8_ 92,not sure
+595,8_ 16,mutiples of 8
+595,98_ 83,subtracting 15
+0,8_ 92,Even numbers
+0,73,All numbers
+0,8_ 16,multiples of 4 or 8
+0,59_ 89_ 79,Any number that ends in 9
+0,10_ 55_ 58,No discernible pattern.
+50,8_ 16,even numbers possibly multiples of 8
+50,55_ 15_ 75_ 45,odd numbers with 5 as the number end
+50,46_ 76_ 66,even numbers with 6 as the number end
+50,11_ 26_ 74_ 2,rather random and could be an even or odd number higher than 2
+50,65_ 26_ 2,rather random and can be any even or odd number
+484,10_ 55_ 58,numbers divisible by 2_ 5_ 11_ or 29
+484,8_ 92,either even numbers or numbers between 1 and 100
+484,11_ 26_ 74_ 2,I could not discern a pattern. It may be numbers under 100_ but could be only numbers between 2 and 74.
+484,99_ 59_ 31_ 67,odd numbers
+484,7,odd numbers_ or could be numbers divisible by 7
+591,98_ 54_ 18,numbers that end with either 8 or 4
+591,98_ 83,numbers between 80 and 100
+591,11_ 26_ 74_ 2,numbers between 0 and 75
+591,8_ 16,multiples of 8
+591,65_ 26_ 2,numbers that contain either 2_ 5_ or 6
+596,98_ 83,I think I misunderstood -- I was looking for patterns more complicated than these_ for example 98 -15 =83_ so the next one might be 83-15 = 68. This is why I clicked N so many times. I think I did this wrong. Anyway. These could be numbers between 80-100.
+596,11_ 26_ 74_ 2,Numbers separated by numbers divisible by 3. (11+ 15=26_ 26+48=72_ etc.)
+596,99_ 59_ 31_ 67,Numbers separated by numbers divisible by 4. (99-59=40_ 59-31=28_ etc.) Or just odd numbers.
+596,73,This could be odd numbers or numbers between 1-100 or 70-80 or anything like that.
+596,55_ 15_ 75_ 45,Numbers divisible by fives_ or numbers separated by 10_ or numbers ending in 5_ or odd numbers.
+600,69_ 19_ 85,50 less than the number before
+600,96_ 48,-5 on the first number and +2 on the second
+600,10_ 80,numbers that end in zero
+600,28_ 13,numbers subtracted by 15
+600,3_ 33_ 99,numbers multiplied by 11
+13,65_ 26_ 2,numbers between 1 and 80
+13,98_ 54_ 18,numbers between 1 and 100
+13,99_ 59_ 31_ 67,odd numbers
+13,8_ 16,multiples of 8
+13,8_ 92,even numbers
+48,73,numbers with 7 and 3 in them
+48,8_ 92,numbers with 8_9_2
+48,7,odd
+48,6_ 25,numbers with 6_2_5
+48,99_ 59_ 31_ 67,numbers above 31
+184,47,Numbers with a 7 in them
+184,59_ 14,Numbers with a 5_ 9_ 1_ or 4 in them
+184,51_ 39_ 87,Odd numbers ending in 1_ 9_ or 7
+184,96_ 48,Numbers evenly divisible by 12
+184,42_ 62,Numbers ending in 2
+552,42_ 62,Both numbers should be even integers. 
+552,73_ 35_ 53_ 59,All integers odd
+552,47,Products of x * 7
+552,69_ 19_ 85,No idea here. I couldn''t find a correlation. 
+552,2,any even number. 
+421,51_ 39_ 87,Odd Numbers
+421,69_ 19_ 85,Odd Numbers
+421,7_ 67,Has a seven in it
+421,64_ 96_ 24_ 56,Even Numbers
+421,96_ 48,Even Numbers
+491,98_ 83,numbers between 80 and 70
+491,10_ 55_ 58,numbers between 60 and 75
+491,8_ 92,even numbers
+491,73,prime numbers
+491,6_ 25,numbers between 30 and 55
+604,7_ 31,Numbers between 7 and 31
+604,47,Prime numbers
+604,42_ 62,Even numbers
+604,96_ 48,Multiples of 12
+604,7_ 67,Numbers that have a 7 in the 10s place
+170,65_ 26_ 2,i thought it was the exact numbers
+170,55_ 15_ 75_ 45,i thought it was the exact numbers
+170,8_ 16,i thought it was the exact numbers
+170,73,i thought it was the exact numbers
+170,8_ 92,i thought it was the exact numbers
+409,6_ 25,dk
+409,8_ 16,numbers x8
+409,98_ 83,numbers that include 8
+409,7,dk
+409,59_ 89_ 79,numbers that end in 9
+534,10_ 55_ 58,Numbers between 10 and 58. No noticed similarities. 
+534,98_ 54_ 18,Even Numbers.  (Twos)
+534,6_ 25,Numbers Between 6_ and 25.  (Threes)
+534,73,Odd Number. Multiple conclusions for output
+534,7,Odd Number.  Multiple conclusions for output
+89,7_ 31,Numbers Between 7 and 31
+89,96_ 48,Multiples of 3
+89,59_ 14,Numbers Between 59 and 14
+89,42_ 62,Even Numbers
+89,7_ 67,Odd Numbers
+123,42_ 62,50
+123,96_ 48,85
+123,64_ 96_ 24_ 56,60
+123,51_ 39_ 87,83
+123,3_ 33_ 99,43
+580,64_ 96_ 24_ 56,even numbers
+580,3_ 33_ 99,times 3
+580,73_ 35_ 53_ 59,uneven numbers
+580,59_ 14,45 in between
+580,69_ 19_ 85,uneven numbers
+509,28_ 13,numbers ending in 8 or 3
+509,3_ 33_ 99,numbers ending in 3/9 or odds
+509,42_ 62,numbers ending in 2
+509,75_ 95,numbers ending in 5
+509,51_ 39_ 87,numbers ending in odds
+458,64_ 96_ 24_ 56,even numbers
+458,2,even numbers
+458,75_ 95,multiples of 5
+458,47,not sure
+458,42_ 62,even numbers
+330,7_ 67,ends with 7
+330,96_ 48,divided by 8
+330,51_ 39_ 87,odd numbers
+330,42_ 62,numbers ending with 2
+330,2,even numbers
+166,7_ 67,odd numbers 
+166,75_ 95,ending in 5 
+166,28_ 13,numbers between 13 and 28 
+166,69_ 19_ 85,odd numbers 
+166,7_ 31,odd numbers 
+419,73_ 35_ 53_ 59,Odd numbers over 21
+419,96_ 48,Even numbers divided 
+419,7_ 31,odd numbers
+419,7_ 67,odd numbers
+419,47,odd numbers
+288,96_ 48,ends with even numbers
+288,73_ 35_ 53_ 59,ends with odd numbers
+288,28_ 13,numbers add up to be even number
+288,7_ 67,numbers ending with 7
+288,42_ 62,numbers ending with 2
+551,99_ 59_ 31_ 67,odd numbers
+551,98_ 54_ 18,even numbers
+551,6_ 25,numbers between 6 and 25
+551,11_ 26_ 74_ 2,numbers between 2 and 74
+551,98_ 83,numbers between 80 and 100
+589,55_ 15_ 75_ 45,all end in 5
+589,7,single digit_ or can count up or down by one
+589,8_ 92,evens
+589,73,odd
+589,46_ 76_ 66,all end in 6
+391,3_ 81,numbers divisible by 3
+391,6,numbers ending in 6
+391,26_ 2,numbers divisible by 2
+391,18_ 8_ 72_ 98,numbers containing_ adding up to or divisible by 8 or 9
+391,80_ 70_ 90_ 100,numbers ending in 0
+554,49_ 28_ 76_ 13,numbers between 10-80
+554,6,numbers 1-10
+554,80_ 70_ 90_ 100,multiples of 5
+554,78_ 48_ 88,numbers ending in 8
+554,18_ 8_ 72_ 98,even numbers
+362,6,even
+362,85_ 7,prime
+362,78_ 48_ 88,ending in 8
+362,3_ 81,number 9
+362,80_ 70_ 90_ 100,ending in 0
+41,9,odd numbers
+41,33_ 9,numbers between 9 and 33
+41,76_ 26,even numbers
+41,33_ 17_ 5_ 9,numbers between 9 and 33
+41,15_ 85_ 45,numbers between 15 and 45
+121,82_ 67_ 72,numbers between 67 and 82
+121,33,odd numbers
+121,78,even numbers
+121,10,even numbers
+121,9,odd numbers
+321,18_ 8_ 72_ 98,even numbers
+321,29_ 62_ 98,numbers between 29 and 98
+321,78_ 48_ 88,even numbers
+321,80_ 70_ 90_ 100,even numbers
+321,32_ 4_ 16,even numbers
+348,90_ 100_ 5,numbers ending in 0 or 5
+348,18_ 8_ 72_ 98,even numbers
+348,29_ 62_ 98,numbers betwen 34 and 56
+348,85_ 7,numbers between 32 and 68
+348,32_ 4_ 16,multiples of 4
+477,26_ 2,even numbers
+477,92_ 68_ 20,even numbers
+477,78_ 48_ 88,even numbers
+477,9_ 33_ 73_ 99,numbers between 9 and 99
+477,18_ 8_ 72_ 98,even numbers
+400,50,numbers that are multiples of 10
+400,17,odd numbers
+400,75_ 27,numbers that have 7 in it 
+400,20_ 32_ 92,even numbers
+400,17_ 50_ 5_ 82,numbers between 5 and 82
+383,17_ 50_ 5_ 82,higher then the one previously 
+383,20_ 32_ 92,ended in 2 
+383,63_ 27_ 99_ 33,double and lower 
+383,53,odd 
+383,50,even
+31,32_ 4_ 16,divided by 4
+31,9_ 33_ 73_ 99,second digit divided by 3
+31,80_ 70_ 90_ 100,divisible by 10
+31,29_ 62_ 98,increasing intervals by 3 from 33
+31,17_ 11_ 65_ 53,odd integers
+114,48_ 99_ 3,something slightly more than double the previous number
+114,86,any number
+114,17,any number
+114,50,any number
+114,10_ 66_ 29,a number between double and 6x the previous number
+18,75_ 48_ 3,multiples of 3
+18,9,multiples of 3 or 9
+18,15_ 85_ 45,multiples of 5
+18,47_ 2_ 74,any 1 or two digit number_ or 47 - 74 forwards and backwards_ and the number 2. 
+18,10,multiples of 5 or 10
+473,10,Ending 0
+473,15_ 85_ 45,Ending 5
+473,33_ 17_ 5_ 9,Odd
+473,12_ 84_ 8,Even
+473,83_ 11,Odd
+428,85_ 7,Odd numbers
+428,78_ 48_ 88,Ending in 8
+428,80_ 70_ 90_ 100,In tens_ e.g. 10_ 20 30 etc.
+428,29_ 62_ 98,Contains the numbers 2_6_ 9 or 8
+428,49_ 28_ 76_ 13,I thought this was a pattern (pretty sure it was the 1st set)_ I kept thinking of a sequence_ and I came up with a larger number (quite a bit larger) than 76
+109,92_ 68_ 20,even numbers
+109,49_ 28_ 76_ 13,even and odd numbers but no numbers that end in 0
+109,32_ 4_ 16,even numbers
+109,29_ 62_ 98,double digit evens and odds
+109,6,numbers that end in 6
+95,75_ 27,numbers divisible by 3
+95,50,even number
+95,48_ 99_ 3,numbers divisible by 3
+95,20_ 32_ 92,even numbers
+95,60_ 54,even numbers
+56,17_ 50_ 5_ 82,odd numbers between 17 and 82
+56,63_ 27_ 99_ 33,odd number 1 -99
+56,20_ 32_ 92,number 15-96
+56,60_ 54,50-70
+56,50,45-55
+74,86,even numbers
+74,15_ 93,odd numbers
+74,17_ 50_ 5_ 82,sequence of odd_ even_ odd_ even_ etc.
+74,63_ 27_ 81,odd numbers
+74,10_ 66_ 29,sequence of even_ even_ odd_ etc.
+237,49_ 28_ 76_ 13,numbers between 13 and 76
+237,90_ 100_ 5,numbers divisible by 5
+237,6,even numbers
+237,92_ 68_ 20,even numbers
+237,32_ 4_ 16,numbers divisible by 4
+495,9,Multiples of 9
+495,75_ 48_ 3,Odd_ even_ odd pattern
+495,47_ 2_ 74,numbers between 2 and 74
+495,55_ 29,Odd numbers
+495,83_ 11,Odd numbers
+129,20_ 32_ 92,even numbers
+129,69,odd numbers
+129,50,multiples of 5
+129,59_ 34_ 14_ 89,ending in 9 or 4
+129,63_ 27_ 81,odd numbers
+233,17_ 50_ 5_ 82,numbers between 5 and 82
+233,20_ 32_ 92,even numbers between 20 and 92
+233,17,odd numbers
+233,63_ 27_ 81,odd numbers between 27 and 81
+233,10_ 66_ 29,numbers between 10 and 66
+545,90_ 100_ 5,multiples of fives
+545,18_ 8_ 72_ 98,Ends in eights and twos
+545,3_ 81,multiples of three
+545,29_ 62_ 98,Between 29 and 98.
+545,66,Can only have a six
+599,17,it is unpredictable (a rule for any number could be found)
+599,60_ 54,too many possibilities_ for example_ even numbers_ or numbers divisible by 3
+599,63_ 27_ 99_ 33,"numbers divisible by 3 (but the ""correct"" order is not clear)"
+599,10_ 66_ 29,not sure
+599,59_ 34_ 14_ 89,not sure
+81,86,toward 100
+81,20_ 32_ 92,20s to 90s
+81,48_ 99_ 3,wide range
+81,10_ 66_ 29,10s to 65s
+81,60_ 54,50s to 75
+107,55_ 29,Odd numbers
+107,10,Too many possibilities to guess with any certainty whatsoever.
+107,47_ 2_ 74,It looks like a mirroring of numbers with a space provided by the number 2
+107,15_ 85_ 45,Multiples of 5?
+107,78,Again_ with only one sample_ how could I guess?
+12,82_ 67_ 72,numbers between 67 and 82
+12,33,odd numbers
+12,78,even numbers
+12,76_ 26,"numbers ending in ""6"""
+12,33_ 17_ 5_ 9,numbers between 5 and 33
+258,10_ 66_ 29,Ends in zero_ six_ nine.
+258,63_ 27_ 99_ 33,Divisible by three.
+258,59_ 34_ 14_ 89,Ends in four or nine.
+258,75_ 27,Has a seven.
+258,60_ 54,Divisible by three.
+305,83_ 38_ 58_ 68,numbers been 20 and 90
+305,76_ 26,numbers ending in 6
+305,55_ 29,odd numbers
+305,33_ 17_ 5_ 9,odd numbers
+305,75_ 48_ 3,numbers that 3 can make
+159,8_ 92,multiples of 8
+159,55_ 15_ 75_ 45,numbers ending in 5
+159,64_ 94_ 84,numbers ending in 4
+159,99_ 59_ 31_ 67,odd numbers
+159,10_ 55_ 58,numbers between 10 and 58
+152,33,odd numbers
+152,33_ 9,odd numbers
+152,9,just odd numbers again
+152,83_ 38_ 58_ 68,"numbers that have at least 1 ""8"" in them"
+152,83_ 11,odd numbers
+190,33_ 9,multiples of 3
+190,83_ 11,odd numbers
+190,78,even numbers
+190,12_ 84_ 8,multplies of 4
+190,33_ 17_ 5_ 9,odd numbers
+505,15_ 85_ 45,numbers ending with 5
+505,33_ 17_ 5_ 9,odd numbers
+505,76_ 26,numbers ending with 6
+505,82_ 67_ 72,don''t know
+505,83_ 11,odd numbers
+46,15_ 85_ 45,last digit is 5
+46,83_ 11,odd number
+46,76_ 26,last digit is 6
+46,33_ 9,divisible by 3
+46,47_ 2_ 74,not sure
+189,80_ 70_ 90_ 100,numbers between 35 and 45
+189,90_ 100_ 5,both even and odd
+189,32_ 4_ 16,even numbers
+189,17_ 11_ 65_ 53,both even and odd
+189,18_ 8_ 72_ 98,even numbers
+417,80_ 70_ 90_ 100,multiples of ten
+417,26_ 2,even numbers
+417,9_ 33_ 73_ 99,odd numbers
+417,18_ 8_ 72_ 98,even numbers
+417,29_ 62_ 98,add 33_ then add 36_ then add 39 and so on
+227,80_ 70_ 90_ 100,Multiples of ten or even
+227,49_ 28_ 76_ 13,Random pattern
+227,66,Multiple of six or numbers with the same 1st and 2nd digit
+227,6,Even
+227,78_ 48_ 88,Even
+439,78_ 48_ 88,numbers ending in 8
+439,80_ 70_ 90_ 100,numbers ending with 0
+439,49_ 28_ 76_ 13,numbers between 13 and 76
+439,18_ 8_ 72_ 98,multiples of 9 or 8
+439,6,multiples of 6
+415,11_ 26_ 74_ 2,I don''t know
+415,59_ 89_ 79,numbers ending in 9
+415,10_ 55_ 58,I don''t know
+415,55_ 15_ 75_ 45,numbers ending in 5
+415,99_ 59_ 31_ 67,odd numbers
+70,33_ 17_ 5_ 9,odd numbers
+70,82_ 67_ 72,numbers between 67 and 82
+70,9,numbers ending in 9
+70,76_ 26,numbers ending in 6
+70,47_ 2_ 74,numbers between 2 and 74
+360,6,multiples of 6
+360,78_ 48_ 88,numbers ending in 8
+360,17_ 11_ 65_ 53,unsure
+360,32_ 4_ 16,multiples of 4
+360,26_ 2,multiples of 3
+359,69,Numbers between 1 and 69
+359,75_ 27,Numbers between 27 and 75
+359,17_ 50_ 5_ 82,Numbers between 5 and 82
+359,48_ 99_ 3,Numbers between 3 and 99
+359,86,Numbers between 1 and 86
+271,75_ 27,odd number
+271,17,odd number
+271,69,odd number
+271,53,odd number
+271,63_ 27_ 99_ 33,odd number
+186,10_ 66_ 29,Numbers between 10 and 66
+186,75_ 27,Odd numbers
+186,15_ 93,Odd numbers
+186,50,Even numbers
+186,20_ 32_ 92,Even numbers
+402,33_ 9,divisible by three
+402,55_ 29,ending in 5 or 9
+402,76_ 26,ending in 6
+402,9,multiplier or divided by 9
+402,33,divisible by 3_ or multiple of 11
+122,12_ 84_ 8,even numbers
+122,78,even numbers
+122,33_ 9,odd numbers
+122,75_ 48_ 3,odd numbers
+122,33_ 17_ 5_ 9,odd numbers
+211,48_ 99_ 3,Unsure
+211,63_ 27_ 99_ 33,Variables of 3
+211,59_ 34_ 14_ 89,Numbers ending with 4 and 9
+211,86,Numbers ending with 6
+211,20_ 32_ 92,Even numbers
+587,6_ 25,Need three data points to construct a pattern. Maybe between 6-25 I realized later about the three data point thing and started saying yes to most anything if there were less than three numbers
+587,46_ 76_ 66,Ends in 6
+587,65_ 26_ 2,Between numbers close to 65-2
+587,8_ 16,multiples of 8
+587,64_ 94_ 84,ends in 4
+286,76_ 26,even numbers between 26 and 76
+286,47_ 2_ 74,all numbers between 2 and 74
+286,10,all numbers that the digits add up to 10
+286,33_ 9,odd numbers between 9 and 33
+286,33,odd numbers
+66,65_ 26_ 2,no idea
+66,8_ 16,multiples of 8
+66,59_ 89_ 79,numbers ending in 9
+66,64_ 94_ 84,numbers ending in 4
+66,11_ 26_ 74_ 2,not sure
+312,92_ 68_ 20,Even Numbers
+312,49_ 28_ 76_ 13,Numbers between 13 & 49
+312,80_ 70_ 90_ 100,Increments of 10''s
+312,26_ 2,Increasing digits using 2 as a base
+312,29_ 62_ 98,Numbers combining 2 6 9 & 8
+430,32_ 4_ 16,numbers between 4 and 32
+430,6,even numbers
+430,26_ 2,even numbers
+430,9_ 33_ 73_ 99,odd numbers_ 9 through 99
+430,85_ 7,odd numbers
+333,32_ 4_ 16,even numbers
+333,3_ 81,odd numbers
+333,85_ 7,odd numbers 
+333,17_ 11_ 65_ 53,odd numbers
+333,29_ 62_ 98,numbers between 29 and 98
+220,63_ 27_ 81,no idea
+220,48_ 99_ 3,multiples of 3
+220,63_ 27_ 99_ 33,not sure
+220,69,between 60 and 70
+220,53,between 50 and 60_ numbers with 5 in them
+451,92_ 68_ 20,evens
+451,26_ 2,evens
+451,80_ 70_ 90_ 100,multiples of to
+451,9_ 33_ 73_ 99,numbers with 9 or 3 in them
+451,66,doubles (66_55_44 ect)
+115,17_ 50_ 5_ 82,numbers between 5 and 82
+115,59_ 34_ 14_ 89,numbers ending in 9 and 4
+115,69,odd numbers
+115,63_ 27_ 81,odd numbers
+115,60_ 54,even numbers
+516,15_ 85_ 45,Numbers divisible by 5
+516,47_ 2_ 74,Not sure on this one
+516,83_ 11,Odd numbers
+516,12_ 84_ 8,Numbers divisible by 4
+516,10,Numbers divisble by 10
+454,9_ 33_ 73_ 99,multiples of three
+454,49_ 28_ 76_ 13,each number 1 - 9 to be used once_ with the exception of 5
+454,85_ 7,odd numbers
+454,66,repeated digits
+454,78_ 48_ 88,double-digit numbers ending with 8
+364,55_ 29,odd nummbers
+364,33,double number that is the same
+364,83_ 38_ 58_ 68,numbers that end in 8
+364,83_ 11,odd numbers
+364,47_ 2_ 74,i do not know
+341,55_ 29,odd numbers
+341,83_ 11,odd numbers
+341,10,even numbers
+341,9,odd numbers
+341,76_ 26,Numbers ending in 6
+204,10_ 66_ 29,numbers between 10 and 29
+204,15_ 93,numbers between 15 and 93
+204,50,even numbers
+204,17,numbers between 17 and something higher
+204,63_ 27_ 99_ 33,numbers between 27 and 99
+384,6, Single digits
+384,29_ 62_ 98,Not sure
+384,49_ 28_ 76_ 13,Not sure
+384,92_ 68_ 20,Even Numbers
+384,32_ 4_ 16,Even Numbers
+291,59_ 34_ 14_ 89,numbers ending in 4 or 9
+291,63_ 27_ 99_ 33,double numbers or factors of 9
+291,20_ 32_ 92,numbers ending in 0 or 2
+291,10_ 66_ 29,numbers ending in 0_ 6_ or 9
+291,48_ 99_ 3,numbers ending in 8_ 9_ or 3
+2,59_ 89_ 79,Numbers ending with 9
+2,8_ 16,Multiples of 8
+2,11_ 26_ 74_ 2,Numbers between 2 and 74
+2,55_ 15_ 75_ 45,Numbers ending with 5
+2,8_ 92,Numbers between 1 and 100
+168,8_ 92,numbers between 5 and 95
+168,98_ 54_ 18,numbers between 15 and 100
+168,6_ 25,numbers between 1 and 50
+168,65_ 26_ 2,numbers between 1 and 80
+168,99_ 59_ 31_ 67,numbers ending with 1_3_5_7_ or 9
+101,17_ 11_ 65_ 53,Odd number set
+101,92_ 68_ 20,Even number set
+101,49_ 28_ 76_ 13,Whole numbers
+101,78_ 48_ 88,Numbers with 8 as the first digit
+101,3_ 81,Multiples of 3
+135,49_ 28_ 76_ 13,Numbers between 13 and 76
+135,29_ 62_ 98,Numbers between 29 and 98
+135,80_ 70_ 90_ 100,Multiples of 10
+135,18_ 8_ 72_ 98,Even numbers
+135,78_ 48_ 88,Numbers ending with 8
+118,10,numbers divisible by 10
+118,33_ 9,numbers divisible by 3
+118,12_ 84_ 8,numbers divisible by 4
+118,83_ 38_ 58_ 68,numbers with the digit 8 in them
+118,83_ 11,odd numbers
+179,10,multiples of 10
+179,33,numbers with the same digit twice
+179,12_ 84_ 8,even numbers
+179,82_ 67_ 72,numbers above 60
+179,15_ 85_ 45,numbers ending in 5
+147,9,Only the number 9 or 0. 
+147,12_ 84_ 8,Even numbers
+147,33_ 9,multiples of 3
+147,15_ 85_ 45,numbers that end in 5
+147,55_ 29,numbers between 55 and 29
+501,48_ 99_ 3,numbers between 3 and 99
+501,86,Even numbers
+501,20_ 32_ 92,Even Numbers
+501,17_ 50_ 5_ 82,numbers ending in 7_ 0_ 5_ 2
+501,59_ 34_ 14_ 89,numbers ending in 9_ 4
+319,90_ 100_ 5,Multiples of five
+319,18_ 8_ 72_ 98,Even numbers
+319,6,I cannot guess.
+319,9_ 33_ 73_ 99,Numbers ending in 3 or 9
+319,32_ 4_ 16,Multiples of 2_ doubling (2_ 4_ 8_ 16_ 32_ 64_ etc.)
+241,66,double digit numbers
+241,9_ 33_ 73_ 99,numbers ending in 3 or 9
+241,80_ 70_ 90_ 100,multiples of five or ten
+241,26_ 2,even numbers
+241,85_ 7,odd numbers
+283,49_ 28_ 76_ 13,random numbers
+283,26_ 2,even numbers
+283,29_ 62_ 98,random numbers
+283,66,even numbers
+283,78_ 48_ 88,even numbers
+311,75_ 48_ 3,?
+311,33,?
+311,83_ 11,?
+311,12_ 84_ 8,?
+311,47_ 2_ 74,?
+566,63_ 27_ 81,odd numbers
+566,69,odd numbers
+566,86,even numbers
+566,59_ 34_ 14_ 89,only those numbers
+566,10_ 66_ 29,only those numbers
+203,78_ 48_ 88,even 2 digit numbers
+203,32_ 4_ 16,multiples of 4
+203,29_ 62_ 98,two digit numbers maybe
+203,17_ 11_ 65_ 53,odd two digit numbers
+203,9_ 33_ 73_ 99,odd numbers
+100,47_ 2_ 74,Divisible by 2
+100,75_ 48_ 3,Divisible by 3
+100,55_ 29,Ending in 5 or 9
+100,10,Divisible by 10
+100,12_ 84_ 8,Even numbers
+445,17_ 11_ 65_ 53,odd numbers
+445,3_ 81,odd numbers
+445,18_ 8_ 72_ 98,even numbers
+445,6,even numbers
+445,80_ 70_ 90_ 100,numbers divisible by 10
+300,59_ 34_ 14_ 89,numbers less than 100
+300,75_ 27,odd numbers
+300,69,numbers composed of and even number in the tens place and an odd number in the ones place
+300,53,odd number in tens place and odd number in ones place
+300,50,odd number even number
+592,63_ 27_ 99_ 33,when you add them together_ you get a number divisivible by 3
+592,10_ 66_ 29,kind of looks like letters upside down
+592,69,a mirrored number
+592,48_ 99_ 3,when you add them together_ you get a number divisivible by 3
+592,17_ 50_ 5_ 82,a number between 1 and 100
+378,8_ 16,even numbers_ multiple of 2''s
+378,10_ 55_ 58,even numbers of easy remebering_ 5''s_ 10''s_ 15''s_ 20''s_ etc.
+378,55_ 15_ 75_ 45,numbers that end in 5''s
+378,11_ 26_ 74_ 2,numbers that are likely prime then not_ then back to prime
+378,99_ 59_ 31_ 67,numbers that are randomly going down then back up again
+482,63_ 27_ 81,odd numbers
+482,53,odd numbers
+482,69,odd numbers
+482,60_ 54,even numbers
+482,75_ 27,even than odd than even numbers
+472,86,80 to 90
+472,63_ 27_ 81,Divisible by nine
+472,10_ 66_ 29,10 to 30
+472,60_ 54,5o to 60
+472,53,50 to 59
+438,92_ 68_ 20,two-digit even numbers
+438,9_ 33_ 73_ 99,odd numbers
+438,6,numbers lower than 10
+438,26_ 2,even numbers that contain a 2
+438,18_ 8_ 72_ 98,even numbers
+25,48_ 99_ 3,random
+25,15_ 93,odd numbers
+25,10_ 66_ 29,even even odd
+25,75_ 27,numbers with 7
+25,63_ 27_ 81,odd numbers
+196,12_ 84_ 8,even numbers
+196,55_ 29,numbers between 25 and 55
+196,83_ 11,odd numbers
+196,47_ 2_ 74,numbers between 1 and 100
+196,78,even numbers
+521,12_ 84_ 8,even numbers
+521,33_ 17_ 5_ 9,odd numbers
+521,82_ 67_ 72,numbers between 67 and 82
+521,9,odd numbers
+521,33_ 9,numbers between 9 and 33
+96,9,Multiples of 9
+96,33,Multiples of 33
+96,33_ 17_ 5_ 9,Multiples of 33_ 17_ 5_ or 9
+96,55_ 29,Only these two numbers
+96,12_ 84_ 8,Multiples of 4
+564,10_ 66_ 29,numbers with 13 added
+564,63_ 27_ 81,odd numbers
+564,17_ 50_ 5_ 82,odd numbers
+564,53,odd numbers
+564,69,odd numbers
+370,3_ 81,Odd numbers_ or numbers near 3.
+370,90_ 100_ 5,a number between 5 and 15.
+370,29_ 62_ 98,number between 29 and 59.
+370,85_ 7,odd number or number near 85.
+370,80_ 70_ 90_ 100,Even number.
+317,33,odd numbers
+317,82_ 67_ 72,between 82 and 67
+317,15_ 85_ 45,numbers ending with 5
+317,10,even numbers
+317,78,even numbers
+377,20_ 32_ 92,even numbers
+377,60_ 54,even numbers
+377,53,odd numbers or numbers close to 53
+377,17_ 50_ 5_ 82,pattern of odd_ even_ odd_ even
+377,10_ 66_ 29,random or alternating high and low numbers
+598,32_ 4_ 16,even numbers
+598,9_ 33_ 73_ 99,odd numbers
+598,90_ 100_ 5,divisible by 5
+598,3_ 81,divisible by 3
+598,78_ 48_ 88,ends in 8
+44,26_ 2,even numbers
+44,18_ 8_ 72_ 98,even numbers
+44,9_ 33_ 73_ 99,numbers ending in 3 or 9
+44,90_ 100_ 5,numbers ending in 0 or 5
+44,6,even numbers
+605,98_ 54_ 18,even numbers
+605,8_ 92,even numbers
+605,55_ 15_ 75_ 45,multiples of 5
+605,7,odd numbers
+605,99_ 59_ 31_ 67,odd numbers
+546,12_ 84_ 8,even numbers
+546,47_ 2_ 74,numbers with 2_4_and 7
+546,83_ 11,odd numbers
+546,76_ 26,numbers that end with 6
+546,10,10
+434,59_ 34_ 14_ 89,numbers that end with 9 or 4
+434,17,odd numbers
+434,20_ 32_ 92,even numbers
+434,69,odd number
+434,10_ 66_ 29,numbers that end with 0_ 6 and 9
+228,83_ 11,odd numbers between 11 and 83
+228,33,numbers that are odd and go up or down same digits_ like 11_ 55.
+228,33_ 9,odd numbers
+228,47_ 2_ 74,numbers between 2 and 74
+228,83_ 38_ 58_ 68,all numbers containing the number 8
+539,10_ 55_ 58,sequential even_ odd numbers
+539,98_ 83,descending even_ odd numbers
+539,11_ 26_ 74_ 2,numbers between 2-100
+539,7,odd numbers
+539,8_ 16,even numbers
+113,33_ 3,Numbers that end in 3
+113,43_ 4_ 91_ 9,Numbers that start with ewither 4 or 9
+113,8_ 64,Numbers divisible by 8
+113,75_ 4,Numbers divisible by 4 or 25
+113,53_ 47_ 41,Numbers between 40 and 59
+573,65_ 47_ 55_ 13,Odd numbers between 10 and 70
+573,27_ 37_ 67,Numbers ending in 7
+573,76_ 44_ 8_ 48,Numbers divisible by 4
+573,25,Numbers divisible by 5
+573,72,Even numbers between 70 and 100
+530,75_ 4,last number counting backwards from 5_ 4_ 
+530,59_ 49_ 99_ 69,numbers ending in 9
+530,4_ 64_ 25_ 81,numbers between 4 and 81
+530,93_ 43_ 83_ 53,numbers ending in 3
+530,15_ 39_ 35,odd numbers ending in 5 or 9
+146,81_ 9,squares_ square roots_ cubes_ cube roots
+146,66_ 78,even
+146,76_ 44_ 8_ 48,even
+146,22_ 96,even
+146,25,multiples of 5 
+273,43_ 4_ 91_ 9,Odd Numbers?
+273,3,Unsure
+273,15_ 39_ 35,Increments of 4
+273,84_ 56,Multiples Of 7
+273,100,Any Number
+198,62,even number
+198,28_ 2,even numbers
+198,67,odd numbers
+198,55,odd numbers
+198,25_ 17,even numbers
+158,62,even numbers
+158,22_ 62_ 26_ 82,even numbers. i may have thought between 20 and 80-something but i don''t remember.
+158,55,ending in 5
+158,50_ 2,even numbers
+158,97_ 77_ 87_ 47,ending in 7
+568,1,Odd numbers
+568,22_ 62_ 26_ 82,Even numbers
+568,3_ 87,Odd numbers
+568,50_ 2,Even numbers
+568,68_ 20_ 35_ 92,even numbers with numbers also using 3 and 5.
+148,64,Even numbers_ multiples of 8
+148,52_ 22_ 94,Even numbers
+148,55_ 60_ 25_ 100,Numbers divisible by 5
+148,38_ 18_ 3,Numbers between 38-0
+148,14,Even numbers_ numbers divisible by 7
+61,44,divisible by 11
+61,13,prime numbers
+61,22_ 96,even numbers
+61,65_ 47_ 55_ 13,odd numbers
+61,66_ 78,divisable by 6
+255,51,any number
+255,16_ 82_ 28,even numbers with 8 or 6
+255,14,any number
+255,55_ 60_ 25_ 100,divisible by 5
+255,38_ 18_ 3,3 or 8 in number
+586,4,even number
+586,2_ 8,even numbers
+586,55_ 60_ 25_ 100,numbers divisible by 5
+586,98_ 24_ 30_ 3,any number between 3 and 98
+586,59_ 3,odd numbers
+414,20_ 8_ 84_ 100,numbers between 8 and 100
+414,76_ 44_ 8_ 48,numbers between 8 and 76
+414,5_ 65,numbers between 5 and 65
+414,43,odd numbers
+414,44,even numbers 
+156,55,5
+156,28_ 2,2
+156,18_ 45_ 72,18-72
+156,81_ 25,Odd
+156,22_ 62_ 26_ 82,2_ 6_ 8
+223,55_ 60_ 25_ 100,"numbers with a ""5"" or ""0"""
+223,24_ 35,numbers that add or subtract 11
+223,23_ 62_ 98,number higher than 98
+223,14,"number that a ""1"" - a ""4"" or numbers that double or triple_ etc._ the original"
+223,64,any number divisable by 2
+239,25_ 17,odd numbers
+239,50_ 2,factors of 2 or 5 or 10
+239,97_ 77_ 87_ 47,numbers ending in 7
+239,28_ 2,factors of 2 and 7
+239,62,even numbers
+366,5_ 65,multiples of 5
+366,10_ 74_ 22,even numbers?
+366,66_ 78,even numbers?
+366,65_ 47_ 55_ 13,odd numbers?
+366,81_ 9,multiples of 9
+193,59_ 49_ 99_ 69,numbers that end in 9
+193,91,odd numbers
+193,75_ 4,all numbers
+193,49,odd numbers
+193,3,numbers that end in 3
+279,72,Numbers ending in a 2
+279,44,Numbers with duplicates 55 66 etc.
+279,76_ 44_ 8_ 48,Even numbers
+279,27_ 37_ 67,Numbers ending in 7
+279,14_ 47,Im not sure on this one
+309,25,Numbers countable by 5 
+309,66_ 78,Even numbers
+309,81_ 9,odd numbers or numbers adding up to nine. 
+309,20_ 8_ 84_ 100,Even numbers divisible by 2.
+309,27_ 37_ 67,Numbers ascending with sevens as the second numeral.
+404,25,numbers ending in 5
+404,65_ 47_ 55_ 13,odd numbers
+404,20_ 8_ 84_ 100,even numbers
+404,27_ 37_ 67,numbers ending in 7
+404,10_ 74_ 22,even numbers
+462,44,even numbers between 44 and 2
+462,25,odd numbers between 25 and 5
+462,22_ 96,even umbers between 96 and 4
+462,43,odd numbers between 43 and 3
+462,27_ 37_ 67,odd numbers between 67 ad 7
+556,66_ 78,numbers between 66 and 78
+556,20_ 8_ 84_ 100,even numbers
+556,5_ 65,numbers ending with 5
+556,65_ 47_ 55_ 13,odd numbers
+556,43,numbers that are 43
+475,55,double numbers_ like 33 or 44
+475,97_ 77_ 87_ 47,numbers ending with 7
+475,67,odd numbers
+475,81_ 25,odd numbers
+475,28_ 2,numbers with 2 in them
+536,97_ 77_ 87_ 47,ends with 7
+536,67,??
+536,68_ 20_ 35_ 92,between 20 and 92
+536,62,??
+536,1,??
+507,84_ 56,Even Numbers_ descending order
+507,33_ 3,Only numbers with 3
+507,43_ 4_ 91_ 9,Odd numbers
+507,3,No way to know_ so I just accepted all
+507,59_ 49_ 99_ 69,Numbers that end in 9
+381,18_ 45_ 72,acending numbers
+381,55,odd numbers
+381,28_ 2,even numbers
+381,81_ 25,odd numbers
+381,68_ 20_ 35_ 92,random numbers
+336,81_ 9,multiples of 9
+336,14_ 47,too little information; no discernable pattern yet present
+336,72,too little information; no discernable pattern yet present
+336,27_ 37_ 67,numbers ending in 7
+336,65_ 47_ 55_ 13,starting at 5_ going up two number to 7_ going back down to 5_ going down two numbers to 3_ going back up to 5
+503,8_ 64,even numbers
+503,49,divisible by 7
+503,33_ 3,divisible by 3
+503,73_ 33,value decreases by 40
+503,43_ 4_ 91_ 9,numbers between 4 and 91
+293,97_ 77_ 87_ 47,second digit is 7
+293,28_ 2,divisible by 2
+293,50_ 2,divisible by 2
+293,1,single digit
+293,26,both digits even
+380,75_ 4,Numbers between 0 and 100
+380,59_ 49_ 99_ 69,Numbers ending in 9
+380,43_ 4_ 91_ 9,Numbers under 100
+380,91,All numbers that are 91
+380,93_ 43_ 83_ 53,Numbers ending in 3
+217,62,even numbers
+217,28_ 2,even numbers
+217,1,numbers between 1 and 50
+217,55,numbers between 55 and 100
+217,26,even numbers
+334,66_ 78,even numbers
+334,43,numbers that end in 3
+334,13,prime numbers
+334,25,multiples of 5
+334,22_ 96,even numbers
+102,55,numbers between 35 and 45
+102,3_ 87,numbers between 35 and 45
+102,50_ 2,even numbers
+102,70_ 10_ 88_ 40,even numbers
+102,67,numbers between 35 and 45
+376,43_ 4_ 91_ 9,between 4 & 91
+376,53_ 47_ 41,prime numbers
+376,75_ 4,between 4 & 75
+376,59_ 49_ 99_ 69,ends in 9
+376,4_ 64_ 25_ 81,perfect squares
+513,44,even numbers
+513,72,numbers divisible by 9
+513,27_ 37_ 67,numbers ending in 7
+513,43,odd numbers
+513,22_ 96,even numbers between 22 and 96
+260,1,odd numbers
+260,22_ 62_ 26_ 82,even numbers
+260,50_ 2,even numbers
+260,25_ 17,odd numbers
+260,26,even numbers
+5,33_ 3,numbers containing 3
+5,3,odd numbers
+5,4_ 64_ 25_ 81,Don''t know
+5,91,odd numbers
+5,75_ 4,numbers in between 75 and 4
+269,66_ 78,even
+269,72,multiple of 9
+269,27_ 37_ 67,"end in ""7"""
+269,43,odd
+269,44,even
+463,93_ 43_ 83_ 53,numbers ending in 3
+463,59_ 49_ 99_ 69,numbers ending in 9
+463,91,odd numbers
+463,75_ 4,even numbers below 25_ odd above 25
+463,15_ 39_ 35,numbers ending in 5 and 9
+603,22_ 62_ 26_ 82,2 and 6 
+603,55,Double Digits
+603,18_ 45_ 72,Between 18 and 72
+603,50_ 2,Even Numbers
+603,26,2 and 6
+202,3,multiples of 3
+202,43_ 4_ 91_ 9,something above 91
+202,75_ 4,number less than 4
+202,93_ 43_ 83_ 53,73_ 10 less than 83
+202,49,numbers between 1 and 100
+343,65_ 47_ 55_ 13,odd numbers
+343,76_ 44_ 8_ 48,even numbers
+343,66_ 78,between 66 and 79
+343,81_ 9,odd numbers
+343,20_ 8_ 84_ 100,even numbers
+247,49,sequential starting with 50 
+247,4_ 64_ 25_ 81,squares (4 = 2x2_ 81 = 9x9)
+247,75_ 4,random
+247,53_ 47_ 41,odd numbers_ decremented by 6 (53>47>41>35>29)
+247,73_ 33,decrements by 40 
+532,59_ 3,numbers with 5_ 9_ or 3 or a combination of them
+532,51,numbers with either 1 or 5 in them
+532,16_ 82_ 28,between 16 and 82
+532,14,even
+532,64,even
+574,44,Even numbers
+574,25,Multiples of 5
+574,43,Odd numbers
+574,66_ 78,Even numbers
+574,27_ 37_ 67,Numbers ending in 7
+278,20_ 8_ 84_ 100,even numbers
+278,76_ 44_ 8_ 48,even numbers
+278,44,even numbers
+278,27_ 37_ 67,numbers with 7
+278,81_ 9,multiply by 9
+497,59_ 3,odd numbers
+497,98_ 24_ 30_ 3,numbers between 1 and 100
+497,51,odd numbers
+497,24_ 35,multiples have a difference of 2
+497,64,even numbers
+488,3,multiples of 2
+488,49,multiples of 7
+488,93_ 43_ 83_ 53,ends in 3
+488,73_ 33,ends in 3
+488,75_ 4,not sure
+365,100,Perfect squares or multiples of 5 or 10 or 25 or numbers with a perfect square as a multiple
+365,3,odd numbers or primes
+365,33_ 3,multiples of 3
+365,49,perfect squares
+365,59_ 49_ 99_ 69,numbers with 9 as the singles digit
+64,11,odd
+64,23_ 62_ 98,Odd_ then even_ even
+64,14,Even number
+64,24_ 35,Even then odd
+64,4,even
+47,62,Evens
+47,18_ 45_ 72,Odds
+47,3_ 87,Between 3 and 87
+47,50_ 2,Evens between 2 and 50
+47,26,Evens
+533,76_ 44_ 8_ 48,numbers divisible by 4
+533,65_ 47_ 55_ 13,odd numbers
+533,10_ 74_ 22,even numbers
+533,27_ 37_ 67,numbers that end in 7
+533,14_ 47,numbers with two digits
+6,43,no idea
+6,22_ 96,even number
+6,66_ 78,even number
+6,25,no clue
+6,72,no clue
+86,33_ 3,numbers that are 3
+86,75_ 4,numbers between 4 and 75
+86,4_ 64_ 25_ 81,numbers between 4 and 100
+86,53_ 47_ 41,odd numbers
+86,91,odd numbers
+265,3,odd numbers
+265,49,numbers that end in 9
+265,75_ 4,numbers with a 4 or 7 in them
+265,8_ 64,even numbers or multiples of 4
+265,15_ 39_ 35,multiples of 5 or 7
+504,65_ 47_ 55_ 13,odd numbers
+504,20_ 8_ 84_ 100,even numbers
+504,72,multiples of 9
+504,22_ 96,even numbers
+504,43,odd numbers
+296,81_ 9,Divisible by 9
+296,25,Multiples of 5
+296,72,Ends in 2
+296,44,Even numbers
+296,13,Odd mumbers
+119,22_ 96,even numbers
+119,10_ 74_ 22,even numbers
+119,13,numbers around 13
+119,14_ 47,numbers between 14 and 47
+119,76_ 44_ 8_ 48,even numbers
+208,3,odd numbers low numbers
+208,93_ 43_ 83_ 53,numbers that end in 3
+208,100,multiples of 100
+208,49,odd numbers
+208,59_ 49_ 99_ 69,numbers that end in 9
+111,3_ 87,odd numbers
+111,97_ 77_ 87_ 47,numbers ending in 7
+111,81_ 25,odd numbers
+111,50_ 2,number ending in 2 or 0
+111,62,numbers in the sixties
+420,75_ 4, 
+420,84_ 56, 
+420,3, 
+420,4_ 64_ 25_ 81, 
+420,43_ 4_ 91_ 9, 
+387,59_ 49_ 99_ 69,odd numbers ending with 9
+387,91,odd numbers divisible by 7
+387,15_ 39_ 35,odd numbers
+387,84_ 56,even numbers divisible by 4
+387,43_ 4_ 91_ 9,2 digit odd numbers alternating with their respective first digit
+99,100,even numbers up to 100
+99,3,odd numbers ending in 3
+99,53_ 47_ 41,odd numbers between 41 and 53
+99,91,odd numbers ending in 1
+99,43_ 4_ 91_ 9,numbers beginning with 4 and numbers beginning with 9
+130,25,5''s
+130,43,odds
+130,76_ 44_ 8_ 48,evens
+130,20_ 8_ 84_ 100,evens
+130,72,x9
+185,50_ 2,low numbers and high numbers
+185,70_ 10_ 88_ 40,even numbers
+185,97_ 77_ 87_ 47,odd numbers
+185,25_ 17,numbers within the same 10s place
+185,67,higher numbers
+277,76_ 44_ 8_ 48,even
+277,65_ 47_ 55_ 13,odds
+277,20_ 8_ 84_ 100,even
+277,81_ 9,odds
+277,66_ 78,even
+433,91,Numbers between 80 - 100
+433,75_ 4,Numbers between 1 - 100
+433,33_ 3,Numbers with a 3 in the ones place
+433,59_ 49_ 99_ 69,Numbers with a 9 in the ones place
+433,93_ 43_ 83_ 53,Numbers with a 3 in the ones place
+222,67,anything is possible 1-100
+222,18_ 45_ 72,I would assume the next number is lower than 72 but even and odd don''t matter.
+222,68_ 20_ 35_ 92,the next number will be smalller and even and odd don''t matter.
+222,3_ 87,a smaller number and anything 1-100
+222,50_ 2,even possibly? but still hard to tell.
+138,26,Even number
+138,50_ 2,numbers divisible by 2 or 5?
+138,67,odd numbers
+138,55,numbers with a five
+138,28_ 2,even numbers
+131,91,odd numbers between 0 and 100
+131,49,odd numbers between 0 and 100
+131,3,odd numbers between 0 and 10
+131,73_ 33,numbers ending in 3 between 10 and 100
+131,53_ 47_ 41,odd numbers between 20 and 70
+578,20_ 8_ 84_ 100,divisible by 4
+578,43,odd number or prime numbers or sequencial numbers (tough to say with only one number)
+578,25,odd numbers or divisible by 5 or sequencial (hard to say with only one number)
+578,72,even numbers or divisible by 9 or sequencial numbers (hard to say with only one number)
+578,10_ 74_ 22,even numbers
+346,97_ 77_ 87_ 47,numbers ending in seven
+346,26,numbers between 20 and 40
+346,3_ 87,numbers divisible by three
+346,1,I honestly don''t remember
+346,81_ 25,perfect squares
+581,18_ 45_ 72,Numbers divisible by 9
+581,1,Any number
+581,67,Any odd number
+581,25_ 17,numbers with either 5 or 7 in the one''s place
+581,55,Numbers divisible by 5
+171,22_ 62_ 26_ 82,Even numbers
+171,67,numbers ending in 7
+171,50_ 2,Divisions of 50
+171,26,numbers ending in 6
+171,1,numbers under 10
+459,73_ 33,Numbers ending in three
+459,8_ 64,Multiples of eight
+459,75_ 4,I don''t know
+459,59_ 49_ 99_ 69,Numbers ending in nine
+459,49,I don''t know
+525,55,Odd numbers
+525,1,Odd numbers
+525,97_ 77_ 87_ 47,Odd numbers
+525,28_ 2,Even numbers
+525,25_ 17,Odd numbers
+436,81_ 25,numbers between 81 and 25
+436,25_ 17, 9
+436,1,odd_ low
+436,28_ 2,evens
+436,55,odd
+470,33_ 3,numbers ending in 3
+470,75_ 4,numbers ending in 5 or 4
+470,91,numbers ending in 1
+470,59_ 49_ 99_ 69,numbers ending in 9
+470,84_ 56,numbers ending in 4 or 6
+314,33_ 3,Odd; between 21-47
+314,73_ 33,Odd; between 63-83
+314,84_ 56,Even; between 50-100
+314,75_ 4,Any number between 44-80
+314,91,Any number between 5-39
+464,59_ 3,odd numbers
+464,98_ 24_ 30_ 3,numbers between 3 and 100
+464,4,even numbers
+464,11,odd numbers
+464,52_ 22_ 94,numbers between 50 and 100
+76,70_ 10_ 88_ 40,don''t know
+76,22_ 62_ 26_ 82,combinations with 2_ 6?
+76,81_ 25,just those numbers
+76,26,just 26
+76,67,just 67
+307,75_ 4,I had no idea
+307,100,Numbers ending in 5 or 0
+307,3,I don''t know
+307,33_ 3,Numbers ending in 3
+307,84_ 56,I don''t know
+390,43_ 4_ 91_ 9,Numbers ending in 3_4_1_9
+390,15_ 39_ 35,Numbers ending in 9 or 5
+390,33_ 3,Numbers ending in 3
+390,4_ 64_ 25_ 81,Numbers ending in 4_5_1
+390,91,Numbers ending in 1
+92,27_ 37_ 67,has 7 last digit
+92,5_ 65,don''t know
+92,43,don''t know
+92,22_ 96,don''t know
+92,14_ 47,don''t know
+149,49,numbers between 1 and 50
+149,8_ 64,even numbers
+149,73_ 33,odd numbers
+149,53_ 47_ 41,numbers between 40 and 60
+149,15_ 39_ 35,numbers between 10 and 40
+461,27_ 37_ 67,numbers that end in 7
+461,5_ 65,multiples of 5
+461,81_ 9,odd numbers
+461,76_ 44_ 8_ 48,even numbers
+461,22_ 96,even numbers
+281,18_ 45_ 72,alternating even and odd
+281,68_ 20_ 35_ 92,pattern of even and odd
+281,50_ 2,even
+281,55,odd
+281,97_ 77_ 87_ 47,odd
+289,14_ 47,odd numbers
+289,43,odd numbers
+289,20_ 8_ 84_ 100,even numbers
+289,81_ 9,odd numbers
+289,13,odd numbers
+176,49,Odd numbers
+176,73_ 33,Numbers that end with 3.
+176,59_ 49_ 99_ 69,Numbers that end with 9.
+176,8_ 64,even numbers
+176,53_ 47_ 41,odd numbers.
+416,16_ 82_ 28,Even numbers and numbers with 8
+416,2_ 8,even numbers
+416,64,even numbers
+416,52_ 22_ 94,even numbers
+416,4,even numbers
+508,93_ 43_ 83_ 53,numbers ending in 3
+508,3,any number
+508,33_ 3,numbers ending in 3
+508,100,any number
+508,15_ 39_ 35,pattern: +24_ -4_ +24_ -4
+103,97_ 77_ 87_ 47,Odd numbers with a seven in them
+103,22_ 62_ 26_ 82,even numbers with 2_ 6 or 8
+103,1,all numbers 
+103,62,all even numbers
+103,18_ 45_ 72,Add 27 to the previous number
+221,5_ 65,numbers divisible by 5
+221,81_ 9,numbers divisible by 9
+221,13,odd numbers
+221,65_ 47_ 55_ 13,odd numbers
+221,27_ 37_ 67,numbers ending in 7
+200,70_ 10_ 88_ 40,EVEN NUMBERS_ ENDS IN 8
+200,26,COULD BE ANY
+200,62,COULD BE ANY_ MAYBE EVEN_ END IN 2 START WITH 6?
+200,97_ 77_ 87_ 47,END IN 7
+200,67,ANY
+93,4_ 64_ 25_ 81,numbers between 4 and 81
+93,53_ 47_ 41,number minus 6
+93,91,not enough info
+93,100,not enough info
+93,43_ 4_ 91_ 9,next 2 numbers are 2-digit number then the first digit of that number
+327,8_ 80_ 48,Multiple of 8
+327,23_ 62_ 98,Between 23 and 98
+327,64,Even
+327,59_ 3,Between 3 and 59
+327,2_ 8,Even
+181,10_ 3,Numbers between 1 and 15
+181,61,Numbers between 50 and 70
+181,33_ 5_ 19,Odd numbers between 1 and 39
+181,96_ 90_ 6_ 42,Even numbers
+181,70_ 15,Multiples of 5
+182,55_ 60_ 25_ 100,even numbers
+182,64,odd numbers
+182,52_ 22_ 94,between 22 and 94
+182,16_ 82_ 28,between 16 and 82
+182,23_ 62_ 98,between 23 and 98
+161,10_ 3,Numbers between 10 and 1
+161,63_ 43,Numbers ending with the number 3
+161,70_ 15,Numbers ending with 5 or 0
+161,55_ 3,Numbers between 1 and 60
+161,9_ 65_ 28,Numbers between 1 and 70
+51,98_ 24_ 30_ 3,Number between 0-30 and numbers between 60-99
+51,23_ 62_ 98,Numbers between 0-100
+51,51,Odd numbers
+51,14,numbers between 0-20
+51,24_ 35,Numbers between 10-50
+256,37_ 57,numbers ending in 7
+256,18,even numbers
+256,28_ 98,numbers ending in 8
+256,5,odd numbers
+256,5_ 51,numbers containing a 5
+267,24_ 35,numbers between 35 and 45
+267,16_ 82_ 28,numbers between 35 and 45
+267,59_ 3,even numbers
+267,8_ 80_ 48,numbers between 35 and 45
+267,11,even numbers
+456,52_ 22_ 94,Even numbers
+456,8_ 80_ 48,Numbers with an 8 in them
+456,2_ 8,Even ascending numbers
+456,23_ 62_ 98,Ascending numbers
+456,64,square roots or even numbers
+403,38_ 18_ 3,Random numbering_ no relation
+403,16_ 82_ 28,Even Numbers
+403,24_ 35,Eleven is added to each number to get the next one in the sequence
+403,23_ 62_ 98,Each number is one less than a factor of 3
+403,4,Each number is a multiple of 4
+248,48_ 30_ 78,even numbers
+248,100_ 1_ 16,numbers between 40-100
+248,84,numbers above 70
+248,95,numbers above 50
+248,12,even numbers
+212,96_ 90_ 6_ 42,even numbers
+212,55_ 3,odd numbers
+212,48_ 63_ 53,any number
+212,2_ 47,any number
+212,30,any number
+78,63_ 43,I think this set goes by tens or 3 threes
+78,81_ 71_ 21_ 31,this one here can go by 10 
+78,61,this set here can go either way or maybe double the amount
+78,55_ 3,this list may go 5 fives and threes
+78,15,this one may go by 15 or by 5
+460,48_ 63_ 53,I thought this program might allow any sets of numbers_ no set limits.
+460,15,I thought this pattern might include numbers that were either in increments of 5s or odd numbers.
+460,63_ 43,I believe this program put out numbers that ended in 3.
+460,81_ 71_ 21_ 31,I believe this program put out numbers that ended in 1.
+460,55_ 3,I think this program put out numbers that were odd.
+466,100_ 1_ 16,even numbers
+466,10_ 50_ 100,10_ 20_ 30_ 40_ 50_ 
+466,54_ 14_ 94_ 34,numbers ending with a 4
+466,66_ 93_ 51,odd numbers
+466,91_ 25_ 61_ 31,numbers ending with a 1 and multiples of 5.
+318,38_ 18_ 3,all numbers under 50
+318,16_ 82_ 28,even numbers between 15 and 60
+318,59_ 3,odd numbers between 1 and 77
+318,8_ 80_ 48,numbers divisible by 8
+318,11,numbers divisible by 11
+426,15,Odd numbers
+426,63_ 43,Odd numbers_ numbers that end in three
+426,33_ 5_ 19,Odd numbers_ numbers that end in an odd number
+426,96_ 90_ 6_ 42,even numbers
+426,81_ 71_ 21_ 31,Numbers ending in 1_ odd numbers
+562,18,Even numbers ending in 8
+562,49_ 76_ 13,numbers adding to 13
+562,81_ 87_ 27,Numbers ending in 1 or 7
+562,14_ 98_ 91,numbers beginning with 1 (teens) or 9
+562,63_ 23_ 43,Numbers ending in 3
+88,84,even
+88,66_ 93_ 51,divide by 3
+88,10_ 50_ 100,multiples of 10
+88,70_ 88_ 7_ 22,either start witha 7 or double digit equal
+88,100_ 1_ 16,start with 1
+526,5_ 77_ 89,odd numbers that are up to two digits
+526,95,a multiple of 5 but two digits
+526,84_ 94_ 34,a double digit number that ends with 4
+526,70_ 88_ 7_ 22,a single or double digit number where single digit is prime and double is even
+526,66_ 93_ 51,double digit number divisible by 3 or 6
+355,15_ 17_ 21_ 5,numbers between 5 and 21
+355,30,even numbers
+355,70_ 15,numbers between 10 and 80
+355,73_ 33_ 3,odd numbers
+355,63_ 43,od numbers
+485,16_ 82_ 28,something to do with 8
+485,23_ 62_ 98,both even and odd from 23 to 98
+485,8_ 80_ 48,all showing 8
+485,52_ 22_ 94,even numbers from 22 to 94
+485,98_ 24_ 30_ 3,higher even to lower odd 
+538,61,Prime numbers
+538,15_ 17_ 21_ 5,Odd numbers
+538,15,Multiples of 15
+538,30,Multiples of 5
+538,2_ 47,Numbers ending in 2 and 7
+244,10_ 3,Increments of 7
+244,61,Anything
+244,9_ 65_ 28,Pattern going from low to high to low
+244,81_ 71_ 21_ 31,Numbers that end in 1
+244,30,Anything
+602,10_ 3,Numbers less than 11
+602,61,Odd Numbers
+602,63_ 43,Numbers that end with 3 separated by 20 
+602,73_ 33_ 3,Numbers that end with 3
+602,81_ 71_ 21_ 31,Numbers that end with 1
+517,73_ 33_ 3,numbers with a 3
+517,48_ 63_ 53,numbers between 40 and 70
+517,2_ 47,number between 1 and 50
+517,10_ 3,numbers between 1 and 20
+517,15_ 17_ 21_ 5,numbers between 1 and 35
+549,9_ 65_ 28,numbers between 9 and 65
+549,15_ 17_ 21_ 5,odd numbers
+549,55_ 3,odd numbers
+549,33_ 5_ 19,odd numbers
+549,63_ 43,odd numbers
+178,90_ 45,multiples of 5
+178,100_ 1_ 16,numbers between 1 and 100
+178,12,even numbers
+178,66_ 93_ 51,numbers between 51-93
+178,84,even numbers 
+502,38_ 18_ 3,Numbers ending with a 3 or ending in an 8
+502,16_ 82_ 28,Even numbers
+502,11,Odd numbers
+502,4,Even numbers
+502,55_ 60_ 25_ 100,Numbers divisible by 5
+356,14_ 98_ 91,divisible by 7
+356,63_ 23_ 43,numbers ending in 3
+356,94_ 70,even
+356,6_ 74,even
+356,39_ 60_ 12_ 45,divisible by 3
+453,10_ 3,add or subtract 7 
+453,15_ 17_ 21_ 5,odd numbers
+453,48_ 63_ 53,numbers minus or plus 5
+453,96_ 90_ 6_ 42,even numbers
+453,55_ 3,odd numbers
+449,11_ 41_ 38_ 92,Numbers witha 1_ 8_ or 2 in the last digit.
+449,10_ 50_ 100,Even numbers.
+449,70_ 88_ 7_ 22,Numbers with a 0_ 8_ 7_ or 2 as the last digit.
+449,84_ 94_ 34,Even numbers.
+449,72_ 92_ 82_ 42,Even numbers.
+236,5_ 51,A range between 5-51
+236,94_ 70,Higher digit numbers (anything above 70+)
+236,6_ 74,A range of Single Digit and Double Digit Numbers
+236,18,18 only
+236,37_ 57,A rounded range of 30-60
+471,96_ 90_ 6_ 42,Numbers divisible by 6
+471,10_ 3,Numbers between 10 and 3
+471,55_ 3,Odd numbers
+471,2_ 47,Numbers between 2 and 47
+471,30,Numbers ending in 0
+16,91_ 25_ 61_ 31,odd numbers between 25 and 91
+16,95,numbers ending in 5
+16,90_ 45,multiples of 5
+16,10_ 50_ 100,numbers ending in 0
+16,66_ 93_ 51,odd numbers between 51 and 66
+67,66_ 93_ 51,Divisible by 3
+67,54_ 14_ 94_ 34,Ends in 4
+67,84_ 94_ 34,Ends in 4
+67,91_ 25_ 61_ 31,Odd numbers
+67,84,No discernible pattern (however at the time I was still a little confused by the HIT and made a guess at a pattern_ that this would be all even numbers)
+133,66_ 93_ 51,Numbers divisible by 3
+133,91_ 25_ 61_ 31,Numbers ending in 1 or 5
+133,84_ 94_ 34,Numbers ending in 4 (let me add that I missed 24 in this set_ my mistake)
+133,90_ 45,Numbers divisible by 9
+133,95,No clue_ I guessed numbers with either a 9 or 5 in them.
+368,73_ 33_ 3,all numbers ending in 3 including 3
+368,33_ 5_ 19,this program accepts numbers that end in odd
+368,30,this program accepts even numbers
+368,63_ 43,this program accepts numbers ending in 3
+368,10_ 3,these program accepts numbers between 10_ 3
+243,4,single digit numbers
+243,16_ 82_ 28,even numbers
+243,51,numbers between 41 and 61
+243,23_ 62_ 98,all numbers
+243,55_ 60_ 25_ 100,multiples of 5
+325,14_ 98_ 91,numbers between 14 and 98
+325,1_ 8_ 27,numbers that are bigger then the previos number that is listed.
+325,63_ 23_ 43,Numbers that end in 3
+325,39_ 60_ 12_ 45,numbers between 12 and 60
+325,5,Numbers that are divisible by 5
+42,5_ 51,odd numbers containing 5 or ending in 1
+42,94_ 70,even numbers less than 70
+42,79_ 59,numbers ending in nine
+42,18,even numbers
+42,39_ 60_ 12_ 45,numbers less than 45
+132,72_ 92_ 82_ 42,Numbers that end in 2
+132,91_ 25_ 61_ 31,Numbers between 25 and 91
+132,84_ 94_ 34,Numbers ending in 4
+132,90_ 45,Numbers by 5
+132,12,Even
+424,84,"no pattern can be discerned from a single number.  at this point of the study_ I decided that any other number was ""possible"" and hence ""likely"""
+424,48_ 30_ 78,these are multiples of 3_ so any number of the pattern 3*x
+424,54_ 14_ 94_ 34,these follow the pattern 10*x + 4
+424,70_ 88_ 7_ 22,this could conceivable be of the pattern 7*x_ 11*x_ 7*x_ 11*x_ etc.  arguably_ this could be a random occurence when in fact there is no pattern.
+424,91_ 25_ 61_ 31,these numbers follow the pattern 3*x + 1
+226,48_ 30_ 78,even numbers
+226,5_ 77_ 89,odd numbers
+226,84,only the number 84
+226,10_ 50_ 100,multiples of 10
+226,54_ 14_ 94_ 34,numbers that end in 4
+569,90_ 45,I wasn''t really sure. Half of the previous number?
+569,95,odds_ multiples of 5s
+569,91_ 25_ 61_ 31,numbers ending in 1 or 5
+569,12,evens
+569,54_ 14_ 94_ 34,ending with 4
+323,81_ 87_ 27,Numbers with 7''s or 8''s in them
+323,1_ 8_ 27,Numbers under 30
+323,5,Numbers divisible by 5
+323,49_ 76_ 13,Numbers with a second digit divisible by 3
+323,39_ 60_ 12_ 45,Completely random sample
+94,55_ 3,odd numbers
+94,10_ 3,numbers less than 11
+94,15_ 17_ 21_ 5,odd numbers less than 30
+94,96_ 90_ 6_ 42,any even number
+94,30,unknown
+172,14_ 98_ 91,34_38_44
+172,81_ 87_ 27,37
+172,94_ 70,34_40
+172,1_ 8_ 27,31_37_38_41
+172,63_ 23_ 43,43
+369,5_ 77_ 89,Odd numbers
+369,72_ 92_ 82_ 42,Numbers that end with a two
+369,10_ 50_ 100,Numbers that end in 0
+369,11_ 41_ 38_ 92,Numbers between 11 and 92
+369,66_ 93_ 51,Numbers between 51 and 93
+91,61,Ends in 1
+91,33_ 5_ 19,Odd numbers
+91,15_ 17_ 21_ 5,Odd numbers
+91,2_ 47,Odd and even numbers
+91,63_ 43,Ends in 3
+284,15_ 17_ 21_ 5,odd lower numbers
+284,55_ 3,this one is tough for me. maybe odd numbers?
+284,33_ 5_ 19,odd lower numbers?
+284,2_ 47,low then high then low
+284,48_ 63_ 53,small range_ goes up then down then up
+490,9_ 65_ 28,all numbers
+490,48_ 63_ 53,between 40 and 70
+490,55_ 3,odd numbers
+490,63_ 43,ending in 3
+490,30,multiples of 10
+117,12,numbers that end in 2
+117,54_ 14_ 94_ 34,numbers that end in 4
+117,72_ 92_ 82_ 42,numbers that end in 2
+117,11_ 41_ 38_ 92,numbers within 2 of tens.
+117,5_ 77_ 89,odd numbers
+80,18,even numbers
+80,94_ 70,even numbers
+80,6_ 74,even numbers
+80,14_ 98_ 91,numbers divisible by 7
+80,1_ 8_ 27,cube of each number_ next should be 64
+590,8_ 80_ 48,Even numbers and numbers divisible by even numbers.
+590,24_ 35,numbers between 24 and 35.
+590,2_ 8,Even numbers and all numbers divisible by 2.
+590,4,Even numbers.
+590,64,Even numbers.
+205,70_ 15,numbers in 5s
+205,61,ending in 1
+205,55_ 3,odds
+205,63_ 43,ending in 3
+205,2_ 47,unsure
+480,15_ 17_ 21_ 5,odd numbers
+480,30,even numbers
+480,9_ 65_ 28,not prime
+480,73_ 33_ 3,ends in 3
+480,10_ 3,under 50
+425,5,odd numbers
+425,5_ 51,numbers with five
+425,18,multiples of 9
+425,49_ 76_ 13,numbers between 13 and 49
+425,14_ 98_ 91,numbers between 14 and 91
+496,79_ 59,Ends in 9
+496,39_ 60_ 12_ 45,numbers between 12 and 60
+496,14_ 98_ 91,one odd number
+496,28_ 98,ends in 8
+496,6_ 34_ 82,even
+20,91_ 25_ 61_ 31,odd first digit
+20,90_ 45,multiply by 5
+20,100_ 1_ 16,?
+20,11_ 41_ 38_ 92,?
+20,54_ 14_ 94_ 34,4 as first digit
+441,18,Multiples of 9
+441,63_ 23_ 43,Numbers ending in 3
+441,28_ 98,Numbers ending in 8
+441,1_ 8_ 27,Numbers between 1 and 30
+441,49_ 76_ 13,Numbers between 10 and 80
+27,84_ 94_ 34,Number ending with 4
+27,12,Divisible by 12
+27,72_ 92_ 82_ 42,Ending with 2
+27,5_ 77_ 89,Numbers that looked right_ this one really confused me
+27,70_ 88_ 7_ 22,Numbers divisible by 7 or 11
+39,91_ 25_ 61_ 31,anything with a one on the end or a number that is divisible by 25
+39,12,anything divisivble by 12
+39,66_ 93_ 51,any number that has a six_ three_ or a one on the end
+39,72_ 92_ 82_ 42,any number that has a two on the end
+39,10_ 50_ 100,any number divisible by 10 
+560,18,multiples of 9
+560,1_ 8_ 27,cube numbers
+560,5,multiples of 5
+560,81_ 87_ 27,numbers between 27 and 81
+560,5_ 51,numbers with 5
+24,48_ 30_ 78,Even numbers_ probably.
+24,95,95 or something near that number.
+24,10_ 50_ 100,Numbers ending in 0
+24,84_ 94_ 34,Numbers ending in 4
+24,66_ 93_ 51,Not sure_ but something higher than 93
+59,11,odd numbers
+59,24_ 35,numbers between 20 and 40
+59,16_ 82_ 28,numbers between 16 and 82
+59,38_ 18_ 3,numbers with a 3 and/or an 8 digit
+59,59_ 3,numbers between 3 and 59
+224,54_ 14_ 94_ 34,numbers ending in 4
+224,72_ 92_ 82_ 42,numbers ending in 2
+224,11_ 41_ 38_ 92,odd/even numbers between 1 and 99
+224,91_ 25_ 61_ 31,odd numbers up to 99
+224,48_ 30_ 78,even numbers ending in 0 or 8
+230,64,even numbers
+230,4,even numbers
+230,98_ 24_ 30_ 3,Both even and odd numbers (I''m really not sure)
+230,59_ 3,even numbers
+230,23_ 62_ 98,both even and odd numbers (I''m really not sure)
+127,70_ 88_ 7_ 22,double numbers and numbers with 7 as the first number
+127,66_ 93_ 51,numbers between 93 and 51
+127,84_ 94_ 34,numbers with a 4 in the ones column
+127,95,the number 95 only_ OR any number at all
+127,10_ 50_ 100,numbers with zeros in the tens and ones columns
+570,11_ 41_ 38_ 92,numbers between 11 and 92
+570,54_ 14_ 94_ 34,even
+570,90_ 45,divisible by 15
+570,84,even
+570,72_ 92_ 82_ 42,ends in 2
+254,64,even 
+254,23_ 62_ 98,Only these.
+254,8_ 80_ 48,mod 8
+254,2_ 8,(increment of 6) + 2
+254,59_ 3,Odd
+577,100_ 1_ 16,numbers between 1 and 100
+577,72_ 92_ 82_ 42,numbers that end in 2
+577,11_ 41_ 38_ 92,number between 11 and 92
+577,91_ 25_ 61_ 31,odd numbers
+577,70_ 88_ 7_ 22,numbers between 7 and 88
+242,63_ 43,Numbers ending in 3
+242,30,10s
+242,55_ 3,Random
+242,10_ 3,Random
+242,15,NUmbers ending in 5
+209,10_ 3,numbers 1-10
+209,15_ 17_ 21_ 5,odd numbers
+209,73_ 33_ 3,numbers ending in 3
+209,30,multiples of 10
+209,15,multiples of 5
+385,16_ 82_ 28,even numbers
+385,51,middle numbers
+385,4,even numbers
+385,11,multiples of 11_ I meant to select yes for 11_ 22_ 33_ 44_ 55 etc. 
+385,24_ 35,numbers between 20 and 39
+476,54_ 14_ 94_ 34,Numbers that end in 4
+476,10_ 50_ 100,Multiples of 10
+476,91_ 25_ 61_ 31,Odd numbers that end in 1 or 5
+476,84,Even numbers
+476,5_ 77_ 89,Odd numbers
+498,100_ 1_ 16,numbers between 1 and 100
+498,54_ 14_ 94_ 34,numbers ending in 4
+498,84,This didn''t really have enough information to discern a pattern_ so I assumed all numbers between 1 and 100.
+498,84_ 94_ 34,numbers ending in 4 again.
+498,12,"The same as ""84""_ no discernible pattern.  I assumed all between 1 and 100."
+339,55_ 60_ 25_ 100,end in multiples of 5
+339,16_ 82_ 28,even numbers
+339,59_ 3,odd numbers
+339,23_ 62_ 98,no idea
+339,11,digits one at time
+395,81_ 87_ 27,I had no idea_ possibly ending in 1 and 7
+395,49_ 76_ 13,no idea? perhaps numbers between 13 and 76
+395,1_ 8_ 27,numbers between 1 and 27
+395,5_ 51,numbers with 5 in them
+395,28_ 98,numbers ending in 8
+195,55_ 3,odd numbers
+195,81_ 71_ 21_ 31,numbers ending in 1
+195,73_ 33_ 3,numbers ending in 3
+195,33_ 5_ 19,odd numbers
+195,9_ 65_ 28,numbers between 9 and 65
+246,48_ 63_ 53,numbers between 48 to 63
+246,15_ 17_ 21_ 5,odd numbers
+246,70_ 15,odd numbers
+246,9_ 65_ 28,not sure
+246,96_ 90_ 6_ 42,numbers multiplied by 6
+310,15_ 17_ 21_ 5,odd number
+310,48_ 63_ 53,between 48 and 63
+310,2_ 47,between 2 and 47
+310,73_ 33_ 3,every number have a 3
+310,33_ 5_ 19,odd number
+388,96_ 90_ 6_ 42,Even numbers; multiples of 2
+388,63_ 43,Numbers ending with 3; -20 to each next number
+388,15,Multiples of 3_ 5 or 15
+388,70_ 15,Multiples of 5
+388,30,Even numbers; multiples of 5_ 6 or 2
+73,84,a number divisible by 2 or ends in 4 (I had no idea)
+73,91_ 25_ 61_ 31,numbers that start with 9_2_6 or 3 (I had no idea)
+73,70_ 88_ 7_ 22,numbers that start with 7_ 8 or 2 (I had no idea)
+73,54_ 14_ 94_ 34,numbers that end in 4
+73,5_ 77_ 89,odd numbers
+401,5_ 51,odd numbers
+401,79_ 59,numbers with 9
+401,1_ 8_ 27,odd even pattern
+401,94_ 70,even numbers
+401,28_ 98,numbers with 8
+253,64,even numbers
+253,98_ 24_ 30_ 3,numbers between 3 and 98
+253,8_ 80_ 48,even numbers
+253,4,even numbers
+253,51,odd numbers
+548,64,Square numbers
+548,51,Odd numbers between 30 and 70
+548,4,Powers of 2 between 1 and 100
+548,23_ 62_ 98,Numbers between 10 and 100
+548,59_ 3,Prime numbers between 1 and 100
+469,100_ 1_ 16,"contained ""1"""
+469,70_ 88_ 7_ 22,double numbers or 7s
+469,90_ 45,multiples of 5
+469,11_ 41_ 38_ 92,on this one I couldn''t find anything.  I thought maybe -- +30 -3 +54 and thought that the would be -5 = 87
+469,54_ 14_ 94_ 34,even numbers
+72,2_ 47,Ascending_ in 40s?
+72,73_ 33_ 3,Numbers ending in 3
+72,61,End in 1
+72,9_ 65_ 28,not sure
+72,55_ 3,Multiples of 3?
+97,24_ 35,even numbers under 25_ odd numbers 35+
+97,52_ 22_ 94,even numbers
+97,55_ 60_ 25_ 100,numbers in multiples of 5
+97,98_ 24_ 30_ 3,even numbers over 10_ odd numbers under 10
+97,4,even numbers
+251,10_ 3,numbers between one and 10
+251,48_ 63_ 53,odd numbers between 45 and 65
+251,15,who knows?
+251,55_ 3,odd numbers
+251,9_ 65_ 28,odd numbers
+357,28_ 98,28-98
+357,63_ 23_ 43,3_13_23_33_43_53_63_73_83_93
+357,1_ 8_ 27,no idea
+357,37_ 57,37-57
+357,49_ 76_ 13,no idea
+22,61,"numbers that end in ""1"""
+22,70_ 15,numbers that can be evenly divided by 5
+22,30,multiples of 10
+22,15,odd numbers
+22,33_ 5_ 19,prime numbers
+468,49_ 76_ 13,add 27 then subtract 63--so next number would have to be -50
+468,37_ 57,numbers which add 20-next one would have to be 77
+468,6_ 34_ 82,add 28 and then add 48_ so next number would be to add 68 which would be 150
+468,63_ 23_ 43,subtract 40 and then add 20_ so then next number would be 43-40 which would be 3
+468,28_ 98,add 70 so next number would be 168
+249,18,numbers under 30
+249,49_ 76_ 13,numbers between 5 and 85
+249,14_ 98_ 91,Numbers between 0 and 100
+249,6_ 34_ 82,even numbers between 0 and 90
+249,81_ 87_ 27,numbers between 0 and 95
+32,3_ 63,multiples of 3 and numbers that end in 3
+32,61_ 9_ 45,odd numbers
+32,48_ 78_ 38_ 98,numbers that end in 8
+32,31_ 3_ 1_ 15,primary numbers
+32,5_ 9,single digits
+43,69_ 9_ 39_ 21,numbers which_ when the digits are added_ sum to a multiple of 3
+43,15_ 11,numbers which differ from 15 by a multiple of 4
+43,4_ 16_ 12,multiples of 4
+43,61_ 9_ 45,numbers which_ when the digits are added_ produce an odd number
+43,5_ 9,numbers which differ from 5 by a multiple of 4
+15,61_ 9_ 45,odd numbers
+15,92_ 56,even numbers
+15,89,numbers up to 89
+15,7_ 63,numbers between 7 and 63
+15,5_ 9,odd numbers
+37,92_ 14_ 20_ 5,I didn''t know with this one. 
+37,81,odd numbers
+37,61_ 9_ 45,odd numbers
+37,69_ 9_ 39_ 21,odd numbers
+37,79_ 47_ 62_ 98,numbers between 47 and 98
+499,48,Even number
+499,13_ 91,Second number of first number set subtracted from first number in the second set or something so next number might be 62
+499,53_ 2,5 minus 3 is 2 
+499,21_ 71,Numbers that end in 1 or that follow some other pattern like first number subtracted from second 
+499,71_ 61_ 26_ 81,numbers ending in 1 or some other pattern based on the number given.
+579,21_ 71,ending in 1
+579,96_ 86_ 36_ 66,even numbers
+579,92_ 82_ 27_ 42,ending in 2 or 7
+579,31,odd number
+579,13_ 91,between 91 and 13
+328,61_ 9_ 45,odd
+328,69_ 9_ 39_ 21,odd
+328,89,1-89
+328,81,1-81
+328,7_ 63,7-63
+85,7_ 63,odd numbers between 5 and 65
+85,52_ 24,even numbers divisible by 4
+85,5_ 9,odd numbers between 1 and 10
+85,69_ 9_ 39_ 21,odd numbers divisible by 3
+85,61_ 9_ 45,odd numbers
+154,48,even numbers
+154,94_ 7,ending in 7 or 4
+154,21_ 71,numbers ending in 1
+154,71_ 61_ 26_ 81,ending in 1 or 6
+154,62_ 32_ 22,ending in 2
+54,62_ 32_ 22,numbers in which the second digit is 2
+54,48,even numbers
+54,53_ 2,numbers between 2 and 53
+54,13_ 91,numbers including 1
+54,16_ 26_ 96,numbers in which the second digit is 2
+229,92_ 56,numbers between 50 and 100
+229,61_ 9_ 45,odd numbers
+229,69_ 9_ 39_ 21,odd numbers
+229,15_ 11,odd numbers
+229,79_ 47_ 62_ 98,numbers between 40 and 100
+257,48_ 78_ 38_ 98,even numbers sets of 8
+257,5_ 9,odd numbers
+257,61_ 9_ 45,odd numbers multiples of 1_ 9_ 5
+257,31_ 3_ 1_ 15,odd numbers 3_ 1_ 5
+257,89,odd
+33,21_ 71,All numbers between 0-100 that end in 1 or 0
+33,31,31_ 0_ 93_ 62
+33,94_ 7,All numbers that either add or subtract 7 from 94 or 6 or 8 from 7.  So 87_ 101_ 6_ 14_ 15
+33,92_ 82_ 27_ 42,All numbers between 0 and 100 that end in 7 or 2
+33,96_ 86_ 36_ 66,All numbers between 0-100 that end in 6
+57,21_ 71,Odd Numbers
+57,92_ 82_ 27_ 42,Numbers with 2 in them
+57,77_ 17_ 8,Numbers between 8 and 77
+57,16_ 26_ 96,Numbers ending in 6
+57,13_ 91,Odd numbers
+489,61_ 9_ 45,odd number
+489,3_ 63,can be divided by 3
+489,92_ 14_ 20_ 5,between 5 and 92
+489,89,between 89 and 100
+489,4_ 16_ 12,can be divided by 4
+210,48,numbers in the forties
+210,77_ 17_ 8,digits 1 and 7 and their sum
+210,96_ 86_ 36_ 66,six in the ones position
+210,31,numbers in the thirties
+210,92_ 82_ 27_ 42,two in either position
+479,21_ 71,numbers between 21 and 71
+479,92_ 82_ 27_ 42,numbers between 20 and 100
+479,96_ 86_ 36_ 66,numbers ending in 6
+479,25_ 82,greatest common value is 1
+479,16_ 26_ 96,numbers that are a factor of 2
+17,7_ 51_ 23,I believe this program would accept odd numbers.
+17,23,I believe this program would accept odd numbers.
+17,23_ 80,I believe this program would accept odd numbers amd even numbers.
+17,16_ 8,I believe this program would accept even numbers.
+17,83_ 77,I believe this program would accept odd numbers.
+270,3_ 63,13_ 23_ 33_ 43_ 53_ 63
+270,52_ 24,52_ 24_ 14_ 42_ 32
+270,92_ 56,56_ 62_ 66_ 72_ 76_ 82_ 86
+270,31_ 3_ 1_ 15,1_ 3_ 9_ 15_ 22_ 31
+270,89,1_ 89
+34,25_ 82,Getting used to the test - numbers between 25 and 82
+34,62_ 32_ 22,numbers ending in 2
+34,53_ 2,numbers between 2 adn 53
+34,94_ 7,even_ odd_ even_ odd pattern
+34,3_ 31,odd numbers
+567,7_ 63,Numbers that are multiples of 7
+567,4_ 16_ 12,Numbers that are multiples of 4
+567,79_ 47_ 62_ 98,Was not sure about this one.
+567,31_ 3_ 1_ 15,Numbers with 3_ 1 and/or 5 in them
+567,89,Was not sure about this one.
+266,1_ 8_ 27,numbers between 1 and 17
+266,18,even numbers
+266,5_ 51,odd numbers
+266,63_ 23_ 43,odd number
+266,28_ 98,even numbers
+36,5,Odd numbers
+36,6_ 34_ 82,Even numbers
+36,94_ 70,Even numbers
+36,5_ 51,Odd numbers
+36,39_ 60_ 12_ 45,Numbers between 12 and 60 (or numbers divisible by 3)
+540,4_ 16_ 12,even numbers
+540,92_ 14_ 20_ 5,all numbers_ odd and even
+540,92_ 56,even numbers
+540,52_ 24,even numbers
+540,89,odd numbers
+492,6_ 66,even numbers
+492,75_ 48_ 12_ 3,numbers between 3 and 75
+492,19_ 73,odd numbers
+492,16_ 8,even numbers
+492,31_ 19_ 49_ 100,numbers between 19 and 100
+191,81,odd numbers
+191,89,odd numbers
+191,61_ 9_ 45,odd numbers
+191,15_ 11,odd numbers
+191,4_ 16_ 12,even numbers
+423,31,unsure
+423,94_ 7,number 1 - 100
+423,16_ 26_ 96,Numbers ending in 6
+423,53_ 2,prime numbers
+423,3_ 31,numbers starting with 3
+375,1_ 8_ 27,All integers under 30.
+375,14_ 98_ 91,All integers less that 100 divisible by 7.
+375,39_ 60_ 12_ 45,All integers less that 100 divisible by 3.
+375,37_ 57,17_ 37_ 57_ 77_ 97
+375,6_ 34_ 82,All even integers less than 100.
+315,15_ 11,odd numbers
+315,61_ 9_ 45,odd numbers
+315,48_ 78_ 38_ 98,even numbers
+315,79_ 47_ 62_ 98,odd numbers
+315,89,odd numbers
+582,31_ 3_ 1_ 15,odd numbers
+582,4_ 16_ 12,even numbers
+582,69_ 9_ 39_ 21,odd numbers or from 9 to 69
+582,5_ 9,odd numbers or 5''s and 9''s
+582,89,numbers with 8 or 9 in it
+386,3_ 63,odd numbers
+386,92_ 14_ 20_ 5,numbers between 5 and 92
+386,7_ 63,odd numbers
+386,52_ 24,even numbers
+386,81,odd numbers
+576,62_ 32_ 22,I would think that this set would be even numbers. 
+576,31,Odd Numbers
+576,94_ 7,I honestly do not know. I guess it would be some numbers between 7 and 94_ but some_ like this one_ I can''t even begin to know. 
+576,96_ 86_ 36_ 66,With this one_ I would expect anything that ends in 6
+576,21_ 71,And for this one_ I would think anything that ends in 1
+68,23,odd numbers
+68,8,even numbers
+68,71_ 11,odd numbers
+68,33_ 3_ 65,odd numbers
+68,23_ 80,numbers between 20 and 80
+541,48_ 78_ 38_ 98,last digit 8
+541,79_ 47_ 62_ 98,numbers between 47 and 98
+541,5_ 9,odd numbers
+541,92_ 56,numbers between 56 and 92
+541,31_ 3_ 1_ 15,odd numbers
+280,6_ 74,even numbers between 6 and 74
+280,5,Numbers /5
+280,81_ 87_ 27,odd numbers from 27-87
+280,39_ 60_ 12_ 45,any number from 12-60
+280,28_ 98,even numbers
+139,39_ 60_ 12_ 45,low high low high
+139,6_ 34_ 82,even numbers
+139,28_ 98,even numbers
+139,49_ 76_ 13,low high low
+139,94_ 70,even numbers
+394,3_ 31,Prime Numbers
+394,62_ 32_ 22,Ending in 2
+394,16_ 26_ 96,Ending in 6
+394,77_ 17_ 8,Ending in 8 or 7
+394,94_ 7,multiples of 3_ +1 (4_7_10_etc...)
+408,68_ 14_ 8_ 26,even numbers
+408,71_ 31_ 21,numbers ending in 1
+408,75_ 48_ 12_ 3,decreasing numbers
+408,29_ 77_ 37_ 17,numbers ending in 7 or 9
+408,8,even numbers
+406,7_ 63,multiples of 7
+406,52_ 24,multiples of 4
+406,48_ 78_ 38_ 98,numbers that end in eight
+406,79_ 47_ 62_ 98,numbers between 47 and 98
+406,61_ 9_ 45,numbers between 9 and 61
+188,25_ 82,not sure
+188,96_ 86_ 36_ 66,not sure
+188,6_ 51_ 66_ 27,not sure
+188,48,not sure
+188,92_ 82_ 27_ 42,not sure
+354,92_ 82_ 27_ 42,the program accepts numbers that have 2
+354,71_ 61_ 26_ 81,the program accepts numbers that have one or six
+354,48,the program accepts  even numbers
+354,25_ 82,numbers between 25 and 82
+354,96_ 86_ 36_ 66,the program accept even numbers
+361,62_ 32_ 22,"Numbers ending in ""2"""
+361,96_ 86_ 36_ 66,"Numbers ending in ""6"""
+361,6_ 51_ 66_ 27,Numbers divisible by 3
+361,16_ 26_ 96,Numbers between 16 and 96
+361,31,Odd numbers
+559,31_ 3_ 1_ 15,odd numbers
+559,92_ 56,even numbers
+559,81,perfect squares
+559,92_ 14_ 20_ 5,even numbers or multiples of 5
+559,79_ 47_ 62_ 98,8n-1 if odd_ 8n+/- 2 if even
+455,23_ 80,number between 23 and 80 because there is a even and an odd number.
+455,83_ 77,Odd number because both numbers are odd.
+455,68_ 14_ 8_ 26,Even number because all the numbers are even.
+455,31_ 19_ 49_ 100,The next two number will be even because the first three were odd numbers.
+455,29_ 77_ 37_ 17,odd number because all the numbers are odd.
+55,29_ 77_ 37_ 17,difference between numbers are even
+55,31_ 19_ 49_ 100,numbers between 12 and 151
+55,75_ 48_ 12_ 3,numbers divisible by 9
+55,6_ 66,even numbers
+55,83_ 77,numbers go up by 3
+422,92_ 14_ 20_ 5,3 even numners then a odd number
+422,81,odd numbers
+422,52_ 24,even numbers
+422,61_ 9_ 45,odd numbers
+422,15_ 11,odd numbers
+187,25_ 82,numbers between 25 and 82
+187,16_ 26_ 96,Even numbers
+187,94_ 7,numbers between 7 and 94
+187,62_ 32_ 22,even numbers
+187,21_ 71,odd numbers
+322,92_ 82_ 27_ 42,Every number had a two.
+322,77_ 17_ 8,The first two numbers had a seven_ so the second two numbers might contain eights.
+322,6_ 51_ 66_ 27,This seemed pretty ambiguous. I think I may have went with sixes for the next number
+322,53_ 2,This was totally ambiguous. Every number seemed equally plausible_ so I went with whatever felt right. There was no possible pattern that could be derived.
+322,71_ 61_ 26_ 81,It should probably end in one. Two numbers that end in one_ an even number_ then two more numbers that end in one.
+275,71_ 11,odd smaller each time
+275,19_ 73,odd bigger each time
+275,8,any number
+275,33_ 3_ 65,odd alternate between bigger and smaller
+275,6_ 66,even bigger each time
+105,15_ 11,Numbers in the range of 15 and 11.
+105,4_ 16_ 12,Numbers in the range of 4 and 16.
+105,92_ 56,Numbers in the range of 56 and 92.
+105,79_ 47_ 62_ 98,Numbers in the range of 47 and 98.
+105,31_ 3_ 1_ 15,Numbers in the range of 0 and 31.
+544,71_ 61_ 26_ 81,na
+544,94_ 7,na
+544,31,na
+544,96_ 86_ 36_ 66,na
+544,16_ 26_ 96,na
+124,48,could be anything_ no pattern established
+124,6_ 51_ 66_ 27,again_ I didn''t see a pattern
+124,53_ 2,no pattern that I could see
+124,92_ 82_ 27_ 42,pattern of 2_2_7 so I thought a number ending in 2 could be next
+124,25_ 82,I chose numbers starting and ending with 2s
+585,16_ 26_ 96,Numbers that end in 6
+585,94_ 7,Between 5 and 100
+585,71_ 61_ 26_ 81,Numbers with one or six
+585,77_ 17_ 8,End in 7 or 8
+585,6_ 51_ 66_ 27,End in 6_ 7_ or 1
+338,4_ 16_ 12,even numbers
+338,69_ 9_ 39_ 21,odd numbers
+338,48_ 78_ 38_ 98,even numbers
+338,89,odd numbers
+338,5_ 9,odd numbers
+151,61_ 9_ 45,Odd numbers
+151,7_ 63,Numbers ending in 7 or 3
+151,52_ 24,even numbers
+151,89,any number
+151,48_ 78_ 38_ 98,numbers ending in 8
+235,15_ 11,odd numbers
+235,81,multiples of 9
+235,48_ 78_ 38_ 98,even numbers
+235,79_ 47_ 62_ 98,numbers between 70 and 100
+235,3_ 63,multiples of 3
+1,48,even numbers
+1,62_ 32_ 22,even numbers
+1,53_ 2,numbers between 53_ 2
+1,25_ 82,numbers between 25_ 82
+1,71_ 61_ 26_ 81,numbers between 71_ 61_ 26_ 81
+112,31,numbers under 31
+112,16_ 26_ 96,numbers ending in six
+112,13_ 91,odd numbers between 13-91
+112,92_ 82_ 27_ 42,numbers with a two
+112,96_ 86_ 36_ 66,numbers ending with six
+180,6_ 74,even numbers
+180,81_ 87_ 27,odd numbers
+180,5_ 51,odd numbers
+180,94_ 70,numbers between 60-100
+180,63_ 23_ 43,numbers ending in 3
+215,18,Even numbers
+215,5,odd numbers
+215,14_ 98_ 91,range of 14-98
+215,63_ 23_ 43,Ending in 3
+215,1_ 8_ 27,range of 1-27
+342,92_ 56,even numbers between 56 and 92
+342,5_ 9,odd numbers
+342,15_ 11,odd numbers
+342,31_ 3_ 1_ 15,only odd numbers
+342,7_ 63,odd numbers between 7 and 63
+450,79_ 47_ 62_ 98,prime numbers
+450,5_ 9,odd numbers
+450,61_ 9_ 45,odd  numbers
+450,92_ 14_ 20_ 5,even numbers
+450,52_ 24,even numbers
+443,79_ 59,Last digit ends with 9
+443,37_ 57,Last digit ends with 7
+443,5_ 51,First digit starts with 5
+443,14_ 98_ 91,Multiple of 7
+443,81_ 87_ 27,Each successive number has a same digit as the one previous to it.
+231,25_ 82,even numbers
+231,21_ 71,even numbers
+231,71_ 61_ 26_ 81,numbers between 25 and 91
+231,77_ 17_ 8,even numbers
+231,96_ 86_ 36_ 66,even numbers
+163,77_ 17_ 8,Ending in 7 or 8
+163,94_ 7,Numbers between 94 and 7
+163,96_ 86_ 36_ 66,Ending in 6.
+163,92_ 82_ 27_ 42,Ending in 2
+163,53_ 2,Between 53 and 2
+437,52_ 24,even numbers
+437,4_ 16_ 12,multiples of 4
+437,31_ 3_ 1_ 15,odd numbers
+437,81,odd numbers that are multiples of 3
+437,61_ 9_ 45,odd numbers
+320,52_ 24,Even numbers between 24 and 52
+320,92_ 14_ 20_ 5,Numbers divisible with 2 or 5
+320,69_ 9_ 39_ 21,numbers divisible by 3
+320,79_ 47_ 62_ 98,I really have no idea
+320,48_ 78_ 38_ 98,numbers divisible by 2
+506,79_ 47_ 62_ 98,complex adding/subtracting
+506,31_ 3_ 1_ 15,sequence involving 1_3_5 only
+506,15_ 11,low numbers
+506,5_ 9,multiples of them
+506,81,numbers in 80s or multiples of 9
+60,71_ 11,Numbers ending 1
+60,8,Multiples of 8
+60,23_ 80,No pattern
+60,33_ 3_ 65,Odd numbers
+60,7_ 51_ 23,Odd numbers
+232,52_ 24,Even Numbers
+232,15_ 11,Odd Numbers under 20
+232,92_ 14_ 20_ 5,Even numbers or ending in 5
+232,92_ 56,Even numbers higher than 50
+232,81,multiples of 9
+197,48_ 78_ 38_ 98,Double digit numbers that end in 8
+197,5_ 9,Numbers increasing in single digit increments
+197,7_ 63,Numbers larger than 63 possibly divisible by 7
+197,61_ 9_ 45,A random single digit number followed by a double digit number in which the sum of both numbers equals the single digit number that proceeded it.
+197,81,Numbers greater than 81 that are possibly divisible by 9
+442,71_ 31_ 21,all numbers that have a one in it.
+442,33_ 3_ 65,only odd numbes
+442,71_ 11,only numbers that have a one in it
+442,68_ 14_ 8_ 26,only even numbers
+442,16_ 8,only evens between 8 and 16
+272,48,odd numbers greater than 25
+272,71_ 61_ 26_ 81,even numbers
+272,13_ 91,even numbers between 30 and 65
+272,92_ 82_ 27_ 42,odd numbers
+272,96_ 86_ 36_ 66,even numbers ending in 6 only
+21,31,Odd numbers
+21,25_ 82,"Numbers with ""2"" in then"
+21,6_ 51_ 66_ 27,Every other number has a 6 in it
+21,71_ 61_ 26_ 81,"Numbers ending in ""1"""
+21,3_ 31,"Numbers starting with ""3"""
+77,61_ 9_ 45,odd numbers
+77,15_ 11,divisible by 3
+77,89,not sure
+77,31_ 3_ 1_ 15,odd numbers
+77,92_ 14_ 20_ 5,no idea
+134,31,Odd Numbers
+134,77_ 17_ 8,Numbers between 8 and 77
+134,92_ 82_ 27_ 42,Numbers that have a 2 in them
+134,16_ 26_ 96,Numbers that end with 6
+134,48,Even numbers
+524,94_ 7,Any number under 100
+524,25_ 82,Numbers containing 2
+524,96_ 86_ 36_ 66,Numbers ending in 6
+524,31,Exactly the number 31
+524,16_ 26_ 96,Numbers ending in 6
+136,28_ 98,numbers ending in 8
+136,37_ 57,numbers ending in 7
+136,79_ 59,numbers ending in 9
+136,63_ 23_ 43,numbers less than 43
+136,5_ 51,numbers greater than 51
+431,29_ 77_ 37_ 17,odd numbers
+431,33_ 3_ 65,odd numbers
+431,16_ 8,even numbers
+431,6_ 66,even numbers
+431,31_ 19_ 49_ 100,numbers between 19-100
+177,16_ 32_ 2_ 8,even numbers
+177,16_ 54,even numbers
+177,67_ 99_ 15,odd numbers
+177,35,odd numbers
+177,50_ 76_ 28,numbers between 20 and 80
+71,23_ 35_ 95_ 83,odd numbers
+71,4_ 66_ 78_ 96,even numbers
+71,16,even numbers
+71,85,odd numbers
+71,3_ 7,odd numbers
+572,98_ 18_ 50,numbers between 18 and 98
+572,85_ 19_ 91,numbers between 19 and 91
+572,93,odd numbers
+572,4_ 66_ 78_ 96, 
+572,16,even numbers
+128,16_ 54,even numbers
+128,34_ 26,even numbers
+128,16_ 32_ 2_ 8,multiples of 2
+128,8_ 24_ 48_ 63,multiples of some number
+128,42_ 35_ 21_ 84,multiples of 7
+435,36_ 45_ 54_ 81,All numbers end in 1_ 4_ 5_ & 6
+435,29_ 9_ 3_ 31,All numbers end in 9_ 3 & 1
+435,67_ 31_ 17_ 61,All numbers end in 1 & 7
+435,93,All numbers end in 3
+435,16,All numbers end in 6
+83,36,even numbers
+83,34_ 26,even numbers
+83,42_ 35_ 21_ 84,all numbers between 21 ans 84
+83,16_ 54,even numbers
+83,64_ 44,even numbers
+192,68_ 14_ 8_ 26,even numbers
+192,31_ 19_ 49_ 100,numbers between 19 and 100
+192,33_ 3_ 65,odd numbers
+192,19_ 73,odd numbers ending in 9 or 3
+192,75_ 48_ 12_ 3,numbers between 3 and 5
+82,63_ 67,odd numbers
+82,98_ 18_ 50,even numbers
+82,16,multiples of 16
+82,34_ 86_ 30_ 94,even
+82,39,prime numbers
+165,36,Even
+165,67_ 99_ 15,odd
+165,8_ 32,Even
+165,50_ 76_ 28,Even
+165,16_ 32_ 2_ 8,Even
+392,3_ 7,numbers between 1 and 10
+392,4_ 66_ 78_ 96,even numbers
+392,93,any number
+392,63_ 67,numbers between 60 and 70
+392,98_ 18_ 50,even numbers
+418,34_ 26,even numbers
+418,67_ 99_ 15,any odd number that is less than 15
+418,8_ 32,numbers that can be divided by 4
+418,68_ 58,even numbers
+418,8_ 24_ 48_ 63,numbers between 8 and 63
+65,93,odd numbers
+65,36_ 45_ 54_ 81,odd numbers
+65,4_ 66_ 78_ 96,even numbers
+65,98_ 18_ 50,even numbers
+65,63_ 67,odd numbers
+528,31_ 3_ 1,Any random number followed by its individual digits
+528,8_ 24_ 48_ 63,An ascending order where next number will probably be more than 70 considering previous increments.
+528,64_ 4,Even numbers in random order
+528,87_ 8_ 52,Random numbers in no order
+528,35,Random numbers_ probably multiples of 7 or 5
+432,85_ 19_ 91,odd numbers
+432,22,Even numbers or between a certain amount
+432,39,odd nubmers or between a certain amount
+432,3_ 7,odd numbers or between a certain amount
+432,16,even numbers or between a certain amount
+194,7_ 51_ 23,odd numbers_ numbers between 7 and 51
+194,71_ 31_ 21,odd numbers_ numbers between 21 and 71
+194,6_ 66,6 or 66
+194,29_ 77_ 37_ 17,odd numbers between 17 and 77
+194,19_ 73,odd numbers between 19 and 73
+104,16_ 54,numbers between 0 and 80
+104,64_ 4,numbers between 0 and 80
+104,34_ 26,numbers between 13 and 50
+104,50_ 76_ 28,numbers between 12 and 90
+104,35,numbers between 25 and 45
+446,16,square numbers
+446,22,double numbers - 22_ 33_ 4
+446,29_ 9_ 3_ 31,odd numbers
+446,85_ 19_ 91,odd numbers
+446,63_ 67,numbers between 60 and 69
+75,16,Even numbers between 2 and 100
+75,67_ 31_ 17_ 61,Odd numbers of between 1 and 99
+75,85_ 19_ 91,Odd numbers of between 1 and 99
+75,23_ 35_ 95_ 83,Odd numbers of between 1 and 99
+75,3_ 7,Odd numbers of between 1 and 99
+23,34_ 26,even numbers
+23,31_ 3_ 1,combinations of 1s and/or 3s
+23,50_ 76_ 28,even numbers
+23,64_ 4,even numbers
+23,67_ 99_ 15,odd numbers
+58,85,I don''t know
+58,36_ 45_ 54_ 81,numbers divisible by 9
+58,4_ 66_ 78_ 96,even numbers
+58,16,I don''t know
+58,67_ 31_ 17_ 61,a number in the 60''s then 30''s then 10''s
+19,8_ 32,even between around 8 and 32
+19,35,This is too few data points to make a determination.
+19,8_ 24_ 48_ 63,All numbers between around 8 and 63
+19,50_ 76_ 28,Even numbers from around 28 to 78
+19,68_ 58,Even numbers around 58 to 68
+116,31_ 3_ 1,prime numbers
+116,8_ 32,numbers divisible by 8
+116,64_ 44,numbers ending in 4
+116,35,numbers divisible by 5
+116,34_ 26,even numbers
+553,31_ 3_ 1,numbers split up
+553,42_ 35_ 21_ 84,multiples of 7
+553,64_ 4,divisible by 4
+553,8_ 32,divisible by 4
+553,8_ 24_ 48_ 63,multiples 8 x 3_ then 24 x 2_ then 3 x 5 = 15_ added to 48 equals 63
+329,33_ 3_ 65,odd numbers
+329,83_ 77,odd numbers
+329,7_ 51_ 23,odd numbers
+329,68_ 14_ 8_ 26,even numbers
+329,75_ 48_ 12_ 3,multiple of 9
+427,8,Mutiples of 8
+427,75_ 48_ 12_ 3,dividing by 3
+427,71_ 31_ 21,numbers with 1 at the end
+427,7_ 51_ 23,no idea
+427,19_ 73,no idea
+213,71_ 31_ 21,Numbers that end in 1
+213,29_ 77_ 37_ 17,odd numbers
+213,7_ 51_ 23,numbers between 7 and 51
+213,8,even numbers
+213,16_ 8,multiplications of 8
+225,8,Even numbers and multiples of 8
+225,29_ 77_ 37_ 17,odd numbers and numbers ending in 7 or 9
+225,19_ 73,odd numbers and multiples of 3
+225,23_ 80,Odds and evens and multiples of 3 and 5
+225,68_ 14_ 8_ 26,evens and multiples of 8 and 2
+512,34_ 86_ 30_ 94,Even numbers
+512,85_ 19_ 91,Numbers that have an 8 or 9 in them
+512,98_ 18_ 50,Even numbers
+512,29_ 9_ 3_ 31,Numbers that end in 9 or begin with 3
+512,93,Odd numbers
+478,31_ 3_ 1,Numbers with 1 or 3 in them
+478,34_ 26,Even numbers
+478,67_ 99_ 15,Numbers between 15 and 99
+478,50_ 76_ 28,Even numbers
+478,8_ 24_ 48_ 63,Numbers between 8 and 63
+396,50_ 76_ 28,Even numbers
+396,35,Odd numbers close to 35
+396,16_ 54,Even numbers
+396,8_ 32,Even numbers
+396,64_ 4,Even numbers
+520,85,odd numbers
+520,93,odd numbers
+520,34_ 86_ 30_ 94,even numbers between 34_94
+520,36_ 45_ 54_ 81,between 36_81 
+520,63_ 67,odd numbers
+487,29_ 9_ 3_ 31,Odd numbers
+487,67_ 31_ 17_ 61,Odd numbers again
+487,63_ 67,Numbers between 60 and 70
+487,22,Even numbers
+487,85_ 19_ 91,Odd numbers
+3,19_ 73,numbers that begin and end with odds
+3,83_ 77,numbers below 83
+3,71_ 11,numbers ending in 1
+3,8,even numbers
+3,7_ 51_ 23,numbers whose digits add up to one less than the previous  (single digit) number
+218,29_ 9_ 3_ 31,Any number between 3 and 31
+218,93,93
+218,67_ 31_ 17_ 61,any number between 17 and 67
+218,3_ 7, any number between 3 and 7
+218,39,39
+108,31_ 19_ 49_ 100,numbers begining with 3_1_4
+108,33_ 3_ 65,numbers beginning with multiples of three or odd
+108,75_ 48_ 12_ 3,multiples of 3
+108,68_ 14_ 8_ 26,even numbers
+108,23_ 80,two digit numbers
+593,8,I think program would accept all numbers divisible by 8
+593,23,I think program would accept all numbers that would contain 2 and 3
+593,6_ 66,I think program would accept all numbers divisible by 6 and 66
+593,23_ 80,program would accept all numbers- odd and even
+593,71_ 11,program would accept numbers that contain either a 1 or 7
+301,35,odd numbers
+301,42_ 35_ 21_ 84,numbers between 21 and 84
+301,34_ 26,even numbers
+301,16_ 32_ 2_ 8,numbers that can be multiplied by 8 to equal even numbers
+301,36,even numbers
+393,64_ 44,even numbers
+393,8_ 24_ 48_ 63,between 5 and 65
+393,87_ 8_ 52,between 5 and 90
+393,68_ 58,numbers ending in 8
+393,64_ 4,numbers with 4 in it
+7,23_ 80,random_ more odd than even
+7,33_ 3_ 65,Odd
+7,19_ 73,Odd
+7,71_ 31_ 21,Odd or has 1 in it
+7,68_ 14_ 8_ 26,even
+276,29_ 9_ 3_ 31,don''t know
+276,22,increasing
+276,85_ 19_ 91,decrease then increase
+276,93,decreasing
+276,98_ 18_ 50,even numbers
+167,36,numbers between 1-100
+167,42_ 35_ 21_ 84,numbers with 1_2_3_4_ or 5 in it
+167,34_ 26,even numbers
+167,87_ 8_ 52,numbers between 1-100
+167,64_ 44,numbers ending in 4
+297,63_ 67,numbers between 60 and 69
+297,29_ 9_ 3_ 31,numbers containing 3_ 6_ or 9 as a digit
+297,3_ 7,prime numbers
+297,36_ 45_ 54_ 81,numbers that are multiples of 3
+297,22,numbers that are multiples of 11
+144,3_ 7,plus 4 between each number
+144,22,numbers with repeating digits
+144,36_ 45_ 54_ 81,multiples of 9
+144,29_ 9_ 3_ 31,not sure
+144,98_ 18_ 50,numbers between 80-50
+287,23_ 35_ 95_ 83,odd numbers
+287,16,any number
+287,85_ 19_ 91,numbers between 19 and 100
+287,4_ 66_ 78_ 96,even numbers
+287,3_ 7,odd numbers
+561,19_ 73,I don''t know
+561,23_ 80,I don''t know
+561,16_ 8,I don''t know
+561,6_ 66,I don''t know
+561,31_ 19_ 49_ 100,I don''t know
+183,64_ 4,squares
+183,36,squares
+183,8_ 24_ 48_ 63,multiples 6_7_8
+183,31_ 3_ 1,odd
+183,64_ 44,even
+500,31_ 19_ 49_ 100,Any number
+500,33_ 3_ 65,Odd numbers 
+500,29_ 77_ 37_ 17,Odd numbers
+500,68_ 14_ 8_ 26,Even numbers
+500,71_ 11,Numbers with one in them
+302,68_ 58,ones ending in 8
+302,64_ 4,mulitples of 4
+302,36,no pattern
+302,42_ 35_ 21_ 84,multiples of 7
+302,8_ 24_ 48_ 63,no pattern
+397,36_ 45_ 54_ 81,between 36 & 81
+397,85,odd
+397,23_ 35_ 95_ 83,odd
+397,67_ 31_ 17_ 61,odd
+397,22,even
+352,16_ 54,any numbers with less than 6 in either digit
+352,68_ 58,any number ending in 8
+352,31_ 3_ 1,any number with a 3 or 1
+352,87_ 8_ 52,i had no idea
+352,67_ 99_ 15,odd numbers
+164,85_ 19_ 91,Numbers decrease and increase alternately.
+164,29_ 9_ 3_ 31,Prime numbers.
+164,67_ 31_ 17_ 61,Random number between 60 and 70_ divided by 2_ then add or subtract 2.
+164,85,Random numbers near 80
+164,22,Even numbers or multiples of 11.
+550,64_ 44,even numbers
+550,64_ 4,even numbers
+550,8_ 24_ 48_ 63,forms of 8
+550,16_ 32_ 2_ 8,even numbers
+550,68_ 58,has eights or series of 10
+316,68_ 14_ 8_ 26,even numbers
+316,6_ 66,even numbers
+316,16_ 8,even numbers
+316,19_ 73,odd numbers
+316,23_ 80,Numbers between 23 and 80
+313,23,Odds_ primes
+313,68_ 14_ 8_ 26,Enens
+313,7_ 51_ 23,Odds_ primes
+313,31_ 19_ 49_ 100,Odds and multiples of 10
+313,6_ 66,Evens_ multiples of 11
+353,83_ 77,odd numbers
+353,19_ 73,between these numbers
+353,29_ 77_ 37_ 17,sevens
+353,23,odd
+353,31_ 19_ 49_ 100,between 19 and 100
+106,42_ 35_ 21_ 84,multiples of 7
+106,16_ 32_ 2_ 8,powers of 2
+106,67_ 99_ 15,numbers ending in odd numbers
+106,16_ 54,numbers ending in even numbers
+106,36,whole numbers squared
+285,23,even numbers
+285,31_ 19_ 49_ 100,numbers between 35 and 45
+285,6_ 66,even numbers
+285,7_ 51_ 23,numbers between 35 and 45
+285,23_ 80,even numbers
+467,31_ 19_ 49_ 100,integers
+467,33_ 3_ 65,odd numbers
+467,23,prime numbers
+467,7_ 51_ 23,odd numbers
+467,75_ 48_ 12_ 3,numbers get smaller
+399,6_ 66,even numbers ending in 6
+399,71_ 11,odd numbers ending in 1
+399,31_ 19_ 49_ 100,any odd number_ or even numbers ending ending in 0
+399,23_ 80,numbers that begin with an even number
+399,33_ 3_ 65,any odd number
+30,35,divisible by 5
+30,42_ 35_ 21_ 84,divisible by 7
+30,64_ 44,even numbers_numbers ending in 4
+30,34_ 26,even numbers
+30,16_ 54,divisible by 2
+207,6_ 66,Numbers with 6s in them_ like 666 would follow. 
+207,75_ 48_ 12_ 3,Numbers decreasing in value. 
+207,33_ 3_ 65,Numbers alternating in values from high to low. 
+207,8,Even numbers
+207,16_ 8,Multiples of 4
+29,7_ 51_ 23,odd numbers
+29,83_ 77,83 and then decending down by sixes
+29,33_ 3_ 65,odd numbers
+29,75_ 48_ 12_ 3,any number 100 and down
+29,29_ 77_ 37_ 17,numbers that end in 9s or 7s
+110,16_ 32_ 2_ 8,even numbers
+110,35,odd number
+110,87_ 8_ 52,between 87 aqnd 52
+110,36,even number
+110,8_ 24_ 48_ 63,between 24 and 63
+373,4_ 66_ 78_ 96,Even numbers
+373,85,Numbers over 80
+373,67_ 31_ 17_ 61,Odd numbers
+373,63_ 67,Numbers in the 60s
+373,39,Odd numbers
+137,22,even numbers
+137,39,numbers between 35 and 45
+137,36_ 45_ 54_ 81,could accept even numbers or numbers between 35 and 45 
+137,93,could accept even numbers or numbers between 35 and 45
+137,29_ 9_ 3_ 31,could accept even numbers or numbers between 35 and 45 
+558,85_ 19_ 91,don''t know
+558,39,odd numbers
+558,3_ 7,don''t know
+558,67_ 31_ 17_ 61,numbers with 1_ 3_ 6 or 7
+558,4_ 66_ 78_ 96,don''t know
+268,42_ 35_ 21_ 84,Divisible by 7
+268,67_ 99_ 15,odd
+268,35,odd
+268,36,even
+268,50_ 76_ 28,even
+529,16_ 54,Numbers divisible by 2
+529,67_ 99_ 15,Odd numbers
+529,87_ 8_ 52,Numbers between 5 and 100
+529,16_ 32_ 2_ 8,Factors of 8
+529,50_ 76_ 28,Factors of 4
+324,34_ 86_ 30_ 94,Any number that is 4 less than 30 going down_ and numbers that are 4 more than 86 going up
+324,93,odd numbers
+324,63_ 67,plus or minus 4 from 63 or 67
+324,36_ 45_ 54_ 81,multiples of 9
+324,4_ 66_ 78_ 96,any even number
+84,67_ 99_ 15,numbers between 15 and 67
+84,87_ 8_ 52,numbers between 8 and 87
+84,16_ 32_ 2_ 8,numbers divisible by 2
+84,68_ 58,numbers ending in 8
+84,34_ 26,even numbers
+535,98_ 18_ 50,EVEN NUMBERS
+535,29_ 9_ 3_ 31,ODD NUMBERS
+535,22,EVEN NUMBERS
+535,67_ 31_ 17_ 61,ODD NUMBERS
+535,16,EVEN NUMBERS
+175,42_ 35_ 21_ 84,numbers between 21and 84
+175,8_ 32,even
+175,31_ 3_ 1,odd
+175,67_ 99_ 15,odd
+175,64_ 4,even
+49,5_ 65,Multiples of 5
+49,48_ 99_ 3,Multiples of 3
+49,84_ 56,Even numbers
+49,73_ 33,Numbers with 3 in the second position
+49,59_ 89_ 79,Numbers with 9 in the second position
+571,73_ 33,numbers ending in three
+571,22_ 62_ 26_ 82,unsure
+571,69,not sure
+571,67_ 31_ 17_ 61,every other number ending in a 7 and a 1 (x7_ x1_ x7_ x1)
+571,10_ 3,numbers under 3
+40,33,multiples of 3 or repeat numbers (e.g. 44)
+40,8,even numbers
+40,18,even numbers
+40,23_ 80,odd_ even alternating numbers
+40,10_ 74_ 22,even numbers
+294,96_ 48,even sets
+294,39_ 60_ 12_ 45,numbers between 12 and 60
+294,6_ 74,even sets
+294,66_ 78,even sets
+294,75_ 27,odd sets
+412,73,odd number
+412,97_ 77_ 87_ 47,adding 10 to a number
+412,8_ 32,even numbers
+412,7_ 31,odd numbers
+412,15,odd number
+26,25_ 82,26 
+26,91_ 25_ 61_ 31,90 29 60 20
+26,51,25
+26,10,2
+26,62_ 32_ 22,48 34 20
+351,68_ 14_ 8_ 26,Even numbers
+351,96_ 86_ 36_ 66,even numbers or numbers that end in 6
+351,50_ 76_ 28,Even ups and downs
+351,71_ 11,numbers that end in 1
+351,65_ 47_ 55_ 13,Odd numbers. Seems more complicated. 
+372,25,odd numbers
+372,17_ 50_ 5_ 82,odd numbers
+372,3_ 87,odd numbers
+372,4_ 16_ 12,even numbers_ multiples of 2 or 4
+372,4_ 66_ 78_ 96,even numbers
+157,20_ 8_ 84_ 100,even numbers
+157,7_ 31,odd numbers
+157,73_ 35_ 53_ 59,odd numbers
+157,53_ 2,numbers between 2 and 52
+157,7_ 67,numbers ending in 7
+444,28_ 13,Numbers between 10 and 30
+444,28_ 98,Numbers that end in 8
+444,6_ 74,Even numbers
+444,52_ 22_ 94,Even numbers
+444,55,Double numbers
+263,67,number between 60-70
+263,81_ 71_ 21_ 31,numbers ending with 1
+263,70_ 10_ 88_ 40,even numbers
+263,96_ 90_ 6_ 42,even numbers
+263,3,numbers with 3 within it
+398,96_ 86_ 36_ 66,numbers that end with 6
+398,32_ 4_ 16,multiples of 4
+398,73,73
+398,91,91
+398,34_ 86_ 30_ 94,even numbers
+9,32_ 4_ 16,divisible by 4
+9,60_ 54,even numbers
+9,61,who knows
+9,31_ 3_ 1,numbers with digits 3 and 1
+9,48_ 30_ 78,even numbers
+140,31_ 3_ 1,numbers that include 1 or 3 and are divisible by 31
+140,44,divisible by 2
+140,48,divisible by 12
+140,64_ 96_ 24_ 56,even numbers between 24 and 100
+140,75_ 27,odd numbers between 25 and 75
+53,53_ 47_ 41,odd numbers
+53,15,multiples of 5
+53,99_ 59_ 31_ 67,odd numbers 31 through 99
+53,71_ 61_ 26_ 81,unsure of this one_ even and odd are acceptable between 26 and 81_ numbers end in a 1 or 6.
+53,10_ 80,multiples of 10 ten through 80
+238,37_ 57,Odd numbers
+238,8_ 32,Factors of 8
+238,48,Numbers ending in 8
+238,50_ 76_ 28,Even Numbers
+238,85,Numbers ending in 5
+583,64_ 44,number divisible by 20
+583,14,any number
+583,33_ 9,numbers divisible by 3
+583,10,any number
+583,25,any number
+371,63_ 27_ 99_ 33,45_ 53_ 61_ 77_ 83_ 91
+371,33,43_ 53_ 63_ 73_ 83
+371,54_ 14_ 94_ 34,4_ 24_ 34_ 44_ 54_ 64
+371,66_ 93_ 51,32_ 41_ 57_ 69_ 76_ 84
+371,70_ 88_ 7_ 22,12_ 54_ 87_ 91_ 35_ 47
+563,22,this number it will accept
+563,36_ 45_ 54_ 81,the numbers 36 and 45 would be accepted
+563,55_ 15_ 75_ 45,45 would and 55 would be accepted
+563,69_ 19_ 85,none of these would be accepted
+563,75_ 48_ 3,none of these would be accepted
+206,10_ 74_ 22,factors
+206,26_ 2,either one
+206,99_ 59_ 31_ 67,primes
+206,33_ 9,base 3 
+206,3_ 7,factors
+413,50,multiples of 5
+413,20_ 32_ 92,"numbers that contain ""2"""
+413,34_ 26,numbers that can be divided one time by 2 and nothing else
+413,92_ 82_ 27_ 42,"numbers that contain ""2"""
+413,5_ 51,numbers that start with 5...not sure if I did this
+332,98_ 24_ 30_ 3,Numbers between 98 and 3
+332,92_ 56,Numbers ending in 2 or 6
+332,59_ 89_ 79,numbers ending in 9
+332,72,Even numbers
+332,28_ 13,Numbers ending in either 8 or 13
+290,8,10_ 12_14
+290,69_ 9_ 39_ 21,49_55_79
+290,14,14_28
+290,11,11_22_33_44
+290,25_ 82,27_55_88
+511,3_ 31,Numbers starting or ending with 3
+511,9_ 33_ 73_ 99,numbers ending in 9 or 3
+511,17_ 11_ 65_ 53,Odd numbers
+511,3_ 33_ 99,Multiples of 3 
+511,91,Odd number
+169,13_ 91,prime numbers
+169,5_ 51,numbers with a 5
+169,8_ 16,numbers divisible by 4
+169,78_ 48_ 88,numbers that end in 8
+169,96_ 90_ 6_ 42,even numbers 
+303,9_ 65_ 28,The program accepts numbers with common denominators of 3.
+303,82_ 67_ 72,The program accepts numbers with common denominators of 2.
+303,20_ 8_ 84_ 100,The program accepts numbers with common denominators of 4.
+303,71_ 11,The program accepts numbers with divisions of 6.45454545..etc..
+303,76_ 26,The program accepts numbers that are even.
+8,4,numbers divisible by 4
+8,5_ 51,numbers that contain 5
+8,3_ 33_ 99,numbers divisible by 3
+8,73_ 33,numbers that contain 3
+8,81_ 9,numbers divisible by 9
+575,96_ 48,numbers between 96 & 48
+575,62,even numbers
+575,55_ 3,numbers between 55 and 3
+575,81_ 9,numbers between 91 and 9
+575,61,odd numbers
+14,65_ 47_ 55_ 13,Odds numbers
+14,32_ 4_ 16,Even numbers
+14,10_ 55_ 58,even numbers
+14,49,odds numbers
+14,70_ 10_ 88_ 40,even numbers
+326,8_ 92,even numbers
+326,81_ 25,odd numbers
+326,84_ 94_ 34,numbers ending in 4
+326,92_ 82_ 27_ 42,numbers between 42 and 92
+326,8_ 80_ 48,numbers divisible by 8
+494,67_ 31_ 17_ 61,odd numbers ending with 7 or one
+494,100_ 1_ 16,even number ending in 0
+494,73_ 33,numbers ending in 3
+494,43_ 4_ 91_ 9,unsure
+494,16,unsure
+160,8_ 92,Even numbers between 8 and 92.
+160,85_ 7,Odd numbers between 7 and 85
+160,64_ 96_ 24_ 56,An even number ending in 4
+160,34_ 26,16
+160,86,Not sure. Any even number?
+98,16_ 82_ 28,Even numbers
+98,36_ 45_ 54_ 81,Numbers between 36 and 81
+98,19_ 73,Odd numbers
+98,3_ 63,Numbers multiplied by three
+98,66_ 93_ 51,Numbers divided by three
+481,26,could be anything since only one number is given
+481,60_ 54,even
+481,85_ 7,odd
+481,11_ 26_ 74_ 2,even
+481,16_ 32_ 2_ 8,even
+126,53_ 2,Prime numbers
+126,23_ 35_ 95_ 83,Numbers ending in 3 or 5
+126,75_ 27,Numbers divisible by 3
+126,64_ 96_ 24_ 56,Numbers ending in 4 or 6
+126,3_ 31,Prime numbers
+282,68_ 58,8_18_28_38_48_etc..
+282,42_ 62,2_22_42_62_82_etc..
+282,4,Multiples of 4
+282,7_ 51_ 23,Odd numbers
+282,6_ 25,Multiples of 6 or 5
+45,49,unknown_ but now I''m thinking about it_ probably squares. Can''t believe I didn''t realize that before..
+45,70_ 10_ 88_ 40,even numbers
+45,65_ 26_ 2,unknown
+45,20_ 32_ 92,divisible by 4
+45,53_ 47_ 41,prime numbers
+259,79_ 59,20 less than
+259,63_ 67,4 more than
+259,94_ 70,24 less than
+259,18_ 45_ 72,increasing by proportional amounts
+259,2_ 47,increase of 45
+483,10_ 74_ 22,Even numbers
+483,71_ 31_ 21,Numbers ending in 1
+483,83_ 11,Between 11 and 83
+483,98_ 24_ 30_ 3,Multiples of 3
+483,62,Even numbers
+79,5_ 9,13
+79,70_ 10_ 88_ 40,106
+79,35,36
+79,67_ 31_ 17_ 61,7
+79,39_ 60_ 12_ 45,3
+252,6_ 74,evens
+252,55_ 29,odds
+252,66_ 78,60s and 70s
+252,10_ 50_ 100,multiples of 10
+252,60_ 54,50s and 60s
+523,8_ 24_ 48_ 63,increasing non-prime numbers
+523,17_ 50_ 5_ 82,any
+523,66,any 
+523,39_ 60_ 12_ 45,multiples of 3
+523,5,any
+331,14,even numbers
+331,11,prime numbers
+331,43_ 4_ 91_ 9,with digits from the following: 1_3_4_9
+331,10_ 80,multiples of 10
+331,36,even
+543,84_ 94_ 34,Numbers ending with 4
+543,92_ 56,Even numbers
+543,23_ 80,Numbers between 23 and 80
+543,34_ 86_ 30_ 94,Even numbers
+543,47,Odd numbers
+162,69_ 9_ 39_ 21,multiples of 3
+162,48_ 99_ 3,don''t know
+162,20_ 8_ 84_ 100,even numbers
+162,73_ 35_ 53_ 59,odd numbers
+162,81_ 9,multiples of 9
+308,10_ 66_ 29,numbers between 1-30
+308,14_ 47,numbers between 10-50
+308,66_ 93_ 51,divisible by 3
+308,23,odd numbers
+308,69,odd numbers
+452,92_ 14_ 20_ 5,numbers between 0 and 100
+452,29_ 62_ 98,numbers between 25 and 100
+452,13_ 91,multiples of 13
+452,17_ 11_ 65_ 53,numbers between 10 and 60
+452,6_ 34_ 82,multiples of 2
+153,16_ 26_ 96,Even numbers
+153,62,Not enough information
+153,13_ 91,Odd numbers
+153,15_ 85_ 45,Divisible by 5
+153,25,Not enough information
+69,97_ 77_ 87_ 47,ends in a 7
+69,18,could be almost anything: even numbers_ a range_ ends in 8
+69,90_ 45,either a range or multiples of five
+69,7_ 51_ 23,odds
+69,7,could be almost anything: odds_ a range_ multiples of 7_ ends in 7
+143,75_ 27,odd nubers
+143,8_ 64,divisable by 8
+143,22,ending in 2
+143,2_ 47,between 2 and 47
+143,61_ 9_ 45,between 9 and 61
+486,50,numbers ending with 0
+486,6_ 25,numbers between 6 and 25
+486,49_ 76_ 13,number between 13 and 49
+486,19_ 73,numbers between 19 and 73
+486,48_ 99_ 3,numbers between 3 and 99
+262,23_ 35_ 95_ 83,odd numbers
+262,9_ 33_ 73_ 99,numbers ending in 9 or 3
+262,18,even numbers
+262,48_ 78_ 38_ 98,numbers ending in 8
+262,48_ 30_ 78,numbers ending in 8 or 0
+601,64_ 94_ 84,only numbers ending in 4
+601,73_ 33_ 3,only numbers ending in 3
+601,17_ 50_ 5_ 82,numbers between 5 and 82
+601,93,only 93
+601,79_ 59,only numbers ending in 9
+531,80_ 70_ 90_ 100,multiples of 10
+531,11_ 41_ 38_ 92,any number
+531,6_ 66,numbers ending in 6
+531,63_ 23_ 43,number ending in 3
+531,8,even numbers
+141,25_ 82,numbers +57
+141,77_ 17_ 8,numbers between 8-77
+141,89,sequential number
+141,3_ 87,numbers divisible by 3
+141,19_ 73,odd numbers
+38,64,even numbers
+38,66_ 78,progressively larger numbers that may or may not be even
+38,96_ 90_ 6_ 42,between 6 and 96
+38,1,slightly larger numbers (5_ 7_ 9_ 13 etc) that may or may not be even
+38,94_ 7,between 7 and 94
+557,15_ 85_ 45,ends in 5
+557,53_ 2,between 1 and 99
+557,84_ 94_ 34,ends in 4
+557,4_ 64_ 25_ 81,squares
+557,75_ 48_ 12_ 3,previous divided by 4
+340,15_ 39_ 35,odd non-prime numbers between 15 and 35
+340,6_ 74,even numbers between 6 and 74
+340,75_ 48_ 12_ 3,3 times any square number
+340,10_ 66_ 29,numbers between 10 and 66
+340,51_ 39_ 87,odd numbers between 51 and 87
+90,10_ 66_ 29,numbers between 10 and 66
+90,16_ 26_ 96,anything ending in 6
+90,72_ 92_ 82_ 42,anything ending in 2
+90,16_ 82_ 28,even numbers
+90,51_ 39_ 87,odd numbers
+407,64_ 4, 
+407,22, 
+407,39, 
+407,5_ 65, 
+407,2_ 8, 
+514,33_ 3_ 65,Numbers between 3 and 66.
+514,3_ 81,Multiples of three.
+514,54_ 14_ 94_ 34,Numbers ending in four.
+514,8_ 64,Mutliples of eight.
+514,77_ 17_ 8,Numbers between 8 and 80.
+547,92_ 14_ 20_ 5,numbers between 5 and 92
+547,47_ 2_ 74,Even numbers
+547,7_ 51_ 23,odd numbres
+547,6_ 34_ 82,even numbers
+547,87_ 8_ 52,numbers between 8 an 87
+588,26,27 
+588,90_ 100_ 5,15
+588,31,32
+588,16_ 82_ 28,94
+588,17_ 11_ 65_ 53,7 or 107
+199,53_ 2,EVERYTHING BETWEEN 2 AND 59.
+199,83_ 38_ 58_ 68,ALL NUMBERS WERE THE EIGHT WAS IN THE ONES POSITION.
+199,59_ 3,THIS WAS THE FIRST ONE_ AND I WAS NOT SURE WHAT TO PICK. I DIDN''T DO TOO GOOD ON THIS ONE.
+199,2,ALL EVEN NUMBERS.
+199,3_ 63,EVERYTHING THAT WAS A MULTIPLE OF 3.
+537,66,numbers ending in 6 or a multiple of 6
+537,7_ 67,numbers ending in 7 or multiples thereof
+537,3_ 33_ 99,numbers divisible by 3
+537,27_ 37_ 67,numbers ending in 7
+537,69,numbers divisible by 3
+465,87_ 8_ 52,This one and few others had me stumpped.
+465,25,multiples of 5
+465,63_ 43,odd numbers
+465,35,multiples of 7
+465,48_ 99_ 3,multiples of 3
+447,8_ 32,even
+447,10_ 80,multiples of 10
+447,69_ 19_ 85,numbers made up of any of the above digits
+447,77_ 17_ 8,could be made by adding any of the above digits
+447,44,double digit of same
+52,37_ 57,numbers that end in 7
+52,99_ 59_ 31_ 67,odd numbers
+52,98_ 83,numbers between 98 and 83
+52,10_ 3,numbers under 10
+52,6_ 34_ 82,even numbers
+474,59_ 34_ 14_ 89,numbers ending in 4 or 9
+474,54_ 14_ 94_ 34,numbers ending in 4
+474,63_ 23_ 43,numbers ending in 3
+474,64_ 94_ 84,numbers ending in 4
+474,63_ 27_ 99_ 33,odd numbers
+347,92_ 68_ 20,even numbers between 92 and 20
+347,100,numbers divisible by 10
+347,76_ 44_ 8_ 48,even numbers between 76 and 8
+347,20_ 32_ 92,even numbers between 20 and 92
+347,18_ 45_ 72,numbers that you get when you add 27 to the previous amount
+379,18_ 45_ 72,plus or minus 27
+379,23_ 35_ 95_ 83,plus or minus 12 with 23 as a starting reference
+379,8_ 64,any multiples of 8
+379,14_ 98_ 91,any multiples of 7
+379,23_ 62_ 98,numbers between 23 and 98
+145,9_ 65_ 28,Numbers that fel in that range
+145,39,Things that end in 9
+145,6,Even
+145,11,same number twice 22 33 44
+145,5_ 9,odds 
+299,62_ 32_ 22,between 62 and 22
+299,34_ 86_ 30_ 94,even number
+299,8,even numbers
+299,69,odd numbers
+299,23_ 80,between 23 and 80
+345,76_ 44_ 8_ 48,even numbers
+345,6,even numbers
+345,79_ 47_ 62_ 98,no idea
+345,29_ 9_ 3_ 31,odd numbers
+345,84,even numbers
+10,51_ 39_ 87,Odd Numbers
+10,31_ 19_ 49_ 100,Numbers between 30-100
+10,15_ 93,Odd Numbers
+10,7_ 63,Numbers between 1-100
+10,92_ 68_ 20,Even Numbers
+63,28_ 2,even numbers
+63,73_ 35_ 53_ 59,numbers that end in 3_5_9
+63,6_ 74,even numbers
+63,55,odd numbers
+63,33_ 9,numbers divisible by 3
+584,64_ 96_ 24_ 56,numbers that were multiples or somehow a pattern
+584,3_ 7,odd numbers_ prime numbers
+584,16_ 8,ending in even numbers
+584,70_ 15,by fives
+584,26, tried to think of a pattern
+382,33_ 17_ 5_ 9,odd numbers
+382,33_ 3,divisible by 3
+382,67,numbers where the second number is either one above or below the first
+382,52_ 24,numbers divisible by 4
+382,42_ 62,Numbers ending in 2
+264,16,even numbers
+264,50_ 2,even numbers
+264,67,odd numbers
+264,9,odd numbers
+264,96_ 48,numbers between 48 and 96.
+234,71_ 31_ 21,Odd numbers
+234,50,Dunno
+234,75_ 48_ 12_ 3,Dunno
+234,63_ 23_ 43,Numbers that end with 3
+234,16,Dunno
+555,52_ 22_ 94,Numbers ending in 2 or 4
+555,78,Numbers ending in 8
+555,42_ 35_ 21_ 84,Numbers ending in 2_5_1_4
+555,29_ 62_ 98,Numbers ending in 9_2_8
+555,86,Numbers ending in 6
+410,15_ 93,Maybe odd numbers
+410,48_ 99_ 3,99 - 48_ and then their difference?
+410,35,Numbers divisible by five
+410,48_ 78_ 38_ 98,Numbers that end with 8
+410,63_ 43,Numbers that have 3 at the end
+405,6_ 34_ 82,even numbers
+405,13_ 91,numbers between 13-91
+405,76_ 44_ 8_ 48,even numbers
+405,87_ 8_ 52,numbers between 8-76
+405,29_ 62_ 98,numbers between 29-98
+125,83_ 77,prime nuimbers
+125,28_ 98,even numbers
+125,9_ 33_ 73_ 99,odd numbers
+125,63_ 27_ 81,divisible by 9
+125,13,prime numbers
+440,39,odd numbers 
+440,4_ 16_ 12,even numbers
+440,68_ 58,numbers ending in 8
+440,16_ 32_ 2_ 8,multiples of 2
+440,75_ 4,numbers between 75 and 4
+261,63_ 67,Odd numbers
+261,32_ 4_ 16,Numbers divided by 4
+261,5,Odd numbers
+261,3_ 87,Odd numbers between 3 and 87
+261,4_ 16_ 12,Numbers divided by 4
+155,38_ 18_ 3,numbers between 3 and 38
+155,73_ 33_ 3,numbers ending in 3 between 3 and 73
+155,43,I don''t know. I had trouble deciding with the one number questions.
+155,15_ 39_ 35,odd numbers between 15 and 39
+155,81_ 71_ 21_ 31,numbers ending in 1 between 21 and 81
+306,7_ 63,divisible by 7
+306,10_ 74_ 22,even numbers
+306,67,not sure
+306,48_ 63_ 53,ending in 8 or 3
+306,28_ 13,plus or minus 15
+214,33_ 3_ 65,odd numbers
+214,96_ 86_ 36_ 66,even numbers
+214,61_ 9_ 45,odd numbers 
+214,92_ 14_ 20_ 5,numbers between 1-100
+214,92_ 68_ 20,even numbers 
+518,48_ 30_ 78,I think it accepts even numbers that are multiples of 3 or 6. 
+518,75_ 48_ 12_ 3,I thought it was multiples of 3 and higher than that_ 4. 
+518,55_ 29,just odd numbers. 
+518,69_ 19_ 85,odd numbers
+518,3_ 33_ 99,multiples of 3. 
+367,6_ 34_ 82,Numbers which are even with some odd accepted
+367,22,All possible numbes except those that are divisable by 3
+367,62_ 32_ 22,Even numbers and numbers below 50
+367,81_ 25,Odd numbers and even numbers which are above 25
+367,72,All numbers
+350,78,in the 70s
+350,13_ 91,not divisible by 3 but odd
+350,47_ 2_ 74,ends in 2 4 or 7
+350,10_ 66_ 29,i have no idea
+350,16_ 26_ 96,ends in 6
+150,1_ 8_ 27,54
+150,92_ 68_ 20,12
+150,3_ 31,96
+150,68_ 58,27
+150,33_ 3_ 65,115
+304,7_ 31,I wasn''t sure what the connection was_ other than 24 numbers between
+304,37_ 57,odd first digit_ 7 second digit in a two digit number
+304,72_ 92_ 82_ 42,numbers ending in 2
+304,9,I''m not sure
+304,4,I''m not sure
+429,3_ 31,Numbers with 3 in them or odd numbers or numbers between 3 and 31
+429,76_ 26,Numbers with 6 in them or even numbers or numbers between 26 and 76
+429,55_ 15_ 75_ 45,Odd numbers or numbers divisible by 5 or numbers between 15 and 75
+429,100_ 1_ 16,Numbers between 1 and 100
+429,76_ 44_ 8_ 48,Even numbers or numbers between 8 and 76
+510,87_ 8_ 52,numbers between 8 and 87
+510,67_ 99_ 15,odd numbers
+510,93,prime number
+510,33_ 3_ 65,odd numbers
+510,63_ 67,odd numbers between 63 and 67
+201,68_ 20_ 35_ 92,between 20 and 92
+201,12_ 84_ 8,even numbers
+201,29_ 62_ 98,between 29 and 98
+201,70_ 15,5s
+201,13,odd numbers
+565,75_ 48_ 3,Multiples of 3
+565,100,Any number
+565,3_ 87,Multiples of 3
+565,4_ 66_ 78_ 96,Even numbers
+565,98_ 24_ 30_ 3,Numbers between 3 and 98
+493,29_ 9_ 3_ 31,odd numbers
+493,42_ 35_ 21_ 84,multiples of 7
+493,4_ 66_ 78_ 96,even numbers between 4 and 96
+493,16,even numbers
+493,13,odd numbers
+274,15_ 11,37_ 43_ 47
+274,66_ 93_ 51,43_ 39
+274,48_ 78_ 38_ 98,58_ 68_ 108 
+274,15_ 93,17_ 19_ 23_ 25_ 27_ 31 
+274,25,1_ 5_ 10_ 15_ 20
+87,21_ 71,Ends in 1
+87,64_ 44,Ends in 4
+87,48,Is the number 48
+87,4_ 66_ 78_ 96,Even number
+87,15_ 93,Odd number
+448,3_ 31,start with 3
+448,24_ 35,between 24 and 35
+448,64_ 4,even
+448,96_ 48,even
+448,93_ 43_ 83_ 53,end with 3
+411,4_ 64_ 25_ 81,numbers less than 81?
+411,96_ 48,multiples of 3
+411,85_ 19_ 91,odd numbers
+411,60_ 54,even numbers
+411,3,multiples of 3
+28,31,Odd numbers
+28,75_ 27,Odd numbers
+28,5_ 51,Odd numbers
+28,8_ 16,Even numbers
+28,18_ 8_ 72_ 98,Even numbers
+515,11_ 41_ 38_ 92,Can''t tell what this group might be.
+515,82_ 67_ 72,Can''t tell what this group might be.
+515,59_ 89_ 79,"Certain 2-digit numbers ending in ""9"""
+515,48_ 78_ 38_ 98,"Certain 2-digit numbers ending in ''8"""
+515,21_ 71,"Certain 2-digit numbers ending it ""1''"
+120,6_ 51_ 66_ 27,even numbers
+120,14_ 98_ 91,numbers between 35 and 45
+120,90_ 100_ 5,numbers between 35 and 45
+120,22_ 96,even numbers
+120,2_ 8,even numbers
+250,71_ 11,numbers with 1 in them
+250,14_ 47,numbers with 4 in them
+250,75_ 4,not sure
+250,92_ 82_ 27_ 42,numbers with 2
+250,62,even numbers and/or numbers with 2
+335,3_ 31,odd numbers
+335,63_ 67,Between 60 and 69
+335,75_ 48_ 12_ 3,divisible by 3
+335,9_ 33_ 73_ 99,odd numbers
+335,84_ 94_ 34,last number is 4
+457,68_ 20_ 35_ 92,Numbers between 20 and 68
+457,16_ 8,Multiples of 8
+457,63_ 27_ 99_ 33,Multiples of 3
+457,47,Numbers in the 40s
+457,63_ 43,Numbers ending in 3
+522,28_ 2,Even numbers
+522,84,Numbers that end in 4
+522,7,Odd numbers
+522,7_ 67,Numbers that end in 7
+522,81_ 25,Odd numbers
+542,93,Numbers that end in 3.
+542,30,Numbers by 10
+542,72_ 92_ 82_ 42,Whole numbers ending in 2.
+542,68_ 20_ 35_ 92,Numbers between 68-92
+542,67_ 99_ 15,Odds numbers
+245,16_ 26_ 96,even
+245,14_ 98_ 91,numbers between 35 and 45
+245,81_ 25,numbers between 35 and 45
+245,27_ 37_ 67,numbers between 35 and 45
+245,7_ 67,numbers between 35 and 45
+358,59_ 49_ 99_ 69,Numbers where the one digit is a 9.
+358,16_ 26_ 96,Numbers where the one''s digit is a 6.
+358,68_ 58,Numbers where one''s digit is an 8.
+358,4_ 66_ 78_ 96,add a multiple of 6
+358,8_ 16,multiples of 8
+597,14_ 98_ 91,numbers between 14 and 91
+597,91,odd numbers
+597,68_ 58,even numbers
+597,4,even numbers
+597,6_ 25,even numbers and multiples of 5
+519,2_ 47,numbers between 2 and 47
+519,68_ 14_ 8_ 26,even numbers
+519,4,any number
+519,59_ 14,any number
+519,23_ 62_ 98,numbers between 23 and 98
+35,15_ 17_ 21_ 5,odd
+35,33,unknown
+35,50_ 2,even
+35,44,unknown
+35,16,unknown
+374,66_ 78,number bigger than 78_ even
+374,4,Even numbers_ maybe multiples of 4
+374,75_ 4,numbers bigger than 4
+374,84,numbers containing 8 or 4 as a digit
+374,55,numbers with same digits (22_11_88 etc)_ or numbers containg 5 in it
+240,59_ 34_ 14_ 89,numbers that end with 4 or 9
+240,22,numbers that are multiples of 11; numbers that start or end with 2; 
+240,55,numbers that are multiples of 11; numbers that start or end with 5
+240,81_ 87_ 27,numbers that begin with 8 or 2; numbers that end with 1 or 7
+240,14_ 47,numbers that begin with 1 or 4; numbers that end with 4 or 7
+292,17,odd numbers
+292,93_ 43_ 83_ 53,numbers ending with 3
+292,12_ 84_ 8,even numbers
+292,36,even
+292,89,odd 

@@ -1,0 +1,74 @@
+# Number game factorial experiment configuration
+MODEL: "gpt54-mini"
+OVERWRITE: false
+SEED: 42
+CONCURRENCY: 64
+RUN_PROFILE: "full"  # "full" or the request-minimal "mini" profile
+MINI_CONDITIONS:
+  posterior: ["implicit_default", "explicit_default", "implicit_strong", "implicit_weak"]
+  hypothesis_eval: ["explicit_default"]
+  hypothesis_generation: ["implicit_default"]
+
+# Thinking / reasoning knobs. Backend enables thinking; posterior protocol is explicit below.
+THINKING:
+  enable: false             # HF/local/Tinker thinking
+  reasoning_effort: medium  # OpenAI GPT-5.4 effort when --thinking is passed
+
+# Bayesian model hyperparameters (Tenenbaum 1999)
+BAYESIAN:
+  lam: 0.6667        # prior mass on math rules vs intervals (2/3)
+  sigma: 10.0        # Erlang scale for interval size prior
+  natural_intervals: true
+
+# Per-task grids. h_spaces is the posterior prompt-framing sweep only:
+# hypothesis_eval is explicit-only, hypothesis_generation is implicit-only.
+tasks: ["Tenenbaum99", "Bigelow16"]
+
+Tenenbaum99:
+  eval_modes: ["posterior", "hypothesis_eval", "hypothesis_generation"]
+  h_spaces:   ["implicit", "explicit"]  # posterior only
+  samplings:  ["default", "strong", "weak", "pedagogical", "adversarial"]
+  domains:    [100, 200]
+
+Bigelow16:
+  eval_modes: ["posterior", "hypothesis_eval", "hypothesis_generation"]
+  h_spaces:   ["implicit", "explicit"]  # posterior only
+  samplings:  ["default", "strong", "weak"]
+  domains:    [100]
+  # Per-condition panel/decomposition/histogram plots only render these 8 stimulus sets
+  # (of 255 total). Chosen for structural contrast with Tenenbaum99's 8.
+  # Omit or set to null to skip per-stimulus plots entirely.
+  featured_stimuli:
+    - "D={1,8,27}"        # cubes
+    - "D={3,81}"          # powers of 3
+    - "D={36,45,54,81}"   # multiples of 9
+    - "D={42,35,21,84}"   # multiples of 7
+    - "D={33,17,5,9}"     # all odd
+    - "D={10,50,100}"     # sparse mults of 50 / boundary
+    - "D={11,26,74,2}"    # scattered (similarity)
+    - "D={31,3,1,15}"     # other small
+
+# Prefix-length trajectory: run scorer at prefixes 1..min(len(examples), max_examples)
+SCORING:
+  max_examples: 4
+  trajectory_prefix_horizon: 4   # Aggregate trajectory plots only over stimuli with len(examples) >= N; truncate to first N.
+  max_retries: 2
+
+# Per-eval-mode settings
+POSTERIOR:
+  method: "logits"          # backends without logprobs default to "text_trials"
+  n_trials: 10              # text_trials: full-domain binary-vector probes per prefix
+  temperature: 0.7          # text_trials sampling; Gemini 3.x uses provider-default sampling
+  thinking_mode: "shared_prefix"  # logits + thinking: "shared_prefix" (one thought per prefix) or "per_target"
+  top_logprobs_local: 20    # vLLM/SGLang chat.completions top_logprobs
+  top_logprobs_openai: 5    # Hosted OpenAI/OpenRouter top_logprobs cap
+  thinking_budget: 512      # Thinking tokens reserved per prefix under shared_prefix, per target under per_target
+
+HYPOTHESIS_EVAL:
+  max_tokens: 1024
+  thinking_budget: 2048     # Thinking tokens for rating supplied hypotheses
+
+HYPOTHESIS_GENERATION:
+  max_tokens: 2048
+  n_hypotheses: 10
+  thinking_budget: 2048     # Thinking tokens for free hypothesis brainstorm
