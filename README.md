@@ -1,6 +1,6 @@
 # Hypothesis generation and updating in large language models
 
-Official code repository for the [paper](https://arxiv.org/abs/2605.05851).
+Official code repository for the [Hypothesis generation and updating in large language models](https://arxiv.org/abs/2605.05851).
 
 How do LLMs generate hypotheses from a few examples, update them with new evidence, and generalize beyond what they have seen? We study these questions through the **number game**: given accepted numbers such as `{16, 8, 2, 64}`, infer the hidden rule and predict which other numbers it accepts.
 
