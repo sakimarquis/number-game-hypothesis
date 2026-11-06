@@ -1,4 +1,4 @@
-"""Posterior visualization for condition-level and cross-condition analysis."""
+"""Condition-level figures: membership panels, Bayesian decompositions, α-β ablations, and hypothesis summaries."""
 
 import os
 
@@ -12,13 +12,17 @@ from analysis.plotter import (
     C_BAYESIAN, C_LLM, C_HUMAN, C_ACCENT, C_PRIOR, C_LIKELIHOOD, C_BESTFIT,
     HYP_TYPE_COLORS, SOURCE_COLORS,
 )
-from utils import slugify_stimulus
 
 set_mpl(size=8)
 
 # Per-stimulus figures are drawn only for small stimulus lists; larger tasks
 # (Bigelow16's 255 sets) use their curated `featured_stimuli` or skip them.
 MAX_PER_STIMULUS_PLOTS = 8
+
+
+def slugify_stimulus(name: str) -> str:
+    """Turn a stimulus name like 'D={16,8,2,64}' into a filename-safe slug."""
+    return name.replace(" ", "_").replace(",", "_").replace("{", "").replace("}", "").replace("=", "")
 
 
 def per_stimulus_plot_names(stimulus_names: list[str], featured: list[str] | None) -> list[str]:
@@ -435,7 +439,7 @@ def plot_all(
                                 human=(human_preds or {}).get(name))
 
 
-# ===== α-β decomposition plots =====
+# ===== Size-principle decomposition plots =====
 
 def plot_ablation_comparison(
     bayesian: np.ndarray,
@@ -445,19 +449,18 @@ def plot_ablation_comparison(
     best_fit: np.ndarray,
     stimulus_name: str,
     output_path: str,
-    best_alpha: float = 0.0,
     best_beta: float = 0.0,
 ):
-    """Overlay: LLM bars + Bayesian/prior-only/likelihood-only/best-fit lines."""
+    """Overlay: LLM bars + Bayesian/prior-only/likelihood-only/best-fit lines (best fit under the pooled prior)."""
     n = len(bayesian)
     xs = np.arange(1, n + 1)
     fig, ax = plt.subplots(figsize=(12, 3.5))
     ax.bar(xs, llm, width=1.0, color=C_LLM, alpha=0.4, edgecolor="none", label="LLM")
-    ax.plot(xs, bayesian, color=C_BAYESIAN, lw=1.5, label="Bayesian (α=1,β=1)")
-    ax.plot(xs, prior_only, color=C_PRIOR, lw=1.2, ls="--", label="Prior only (β=0)")
-    ax.plot(xs, likelihood_only, color=C_LIKELIHOOD, lw=1.2, ls="--", label="Likelihood only (α=0)")
+    ax.plot(xs, bayesian, color=C_BAYESIAN, lw=1.5, label="Bayesian")
+    ax.plot(xs, prior_only, color=C_PRIOR, lw=1.2, ls="--", label="Pooled prior only")
+    ax.plot(xs, likelihood_only, color=C_LIKELIHOOD, lw=1.2, ls="--", label="Likelihood only (uniform prior)")
     ax.plot(xs, best_fit, color=C_BESTFIT, lw=1.5, ls="-",
-            label=f"Best fit (α={best_alpha:.2f},β={best_beta:.2f})")
+            label=f"Best fit (size principle β={best_beta:.2f})")
     ax.set_ylabel("p(y∈C|X)")
     ax.set_ylim(0, 1.05)
     ax.set_xlim(0.5, n + 0.5)
@@ -529,13 +532,12 @@ def plot_alpha_beta_all(
     stimulus_names: list[str],
     output_dir: str,
 ):
-    """Generate α-β ablation overlays; skipped for large stimulus lists."""
+    """Generate size-principle ablation overlays; skipped for large stimulus lists."""
     stimulus_names = per_stimulus_plot_names(stimulus_names, None)
     if not stimulus_names:
         return
     os.makedirs(output_dir, exist_ok=True)
-    best_alpha = fit_result["best_alpha"]
-    best_beta = fit_result["best_beta"]
+    best_beta = fit_result["beta"]
 
     for name in stimulus_names:
         if name not in fit_result["ablation_preds"]:
@@ -546,4 +548,4 @@ def plot_alpha_beta_all(
             bayesian_preds[name], np.asarray(llm_preds[name]),
             ab["prior_only"], ab["likelihood_only"], ab["best_fit"],
             name, os.path.join(output_dir, f"ablation_{slug}.png"),
-            best_alpha=best_alpha, best_beta=best_beta)
+            best_beta=best_beta)

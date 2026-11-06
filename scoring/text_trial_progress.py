@@ -34,7 +34,7 @@ def remove_text_trial_progress(path: str, *, expected_identity: dict | None = No
 
 
 class TextTrialProgress:
-    """One condition's (phase, prefix, trial) response texts, optionally mirrored to disk.
+    """One condition's (phase, prefix, trial) response texts and thinking records, optionally mirrored to disk.
 
     The manifest binds progress to the exact raw-cache identity, prefixes, trial
     count, domain, and text format; any mismatch fails closed.
@@ -64,6 +64,7 @@ class TextTrialProgress:
         }
         self._plans: dict[str, list[int]] = {}
         self._texts: dict[tuple[str, int, int], str] = {}
+        self._thinking: dict[tuple[str, int, int], dict] = {}
         if path is not None:
             self._load_or_create()
 
@@ -87,7 +88,9 @@ class TextTrialProgress:
                 record = load_json(os.path.join(phase_dir, name))
                 if record["prefix"] != self.prefixes[record["prefix_index"]]:
                     raise _progress_conflict(self.path, f"containing mismatched prefix record {name}")
-                self._texts[(phase, record["prefix_index"], record["trial_index"])] = record["text"]
+                key = (phase, record["prefix_index"], record["trial_index"])
+                self._texts[key] = record["text"]
+                self._thinking[key] = record["thinking"]
 
     def _plan_path(self, phase: str) -> str:
         return os.path.join(self.path, f"{phase}_plan.json")
@@ -114,7 +117,10 @@ class TextTrialProgress:
     def result_text(self, phase: str, prefix_index: int, trial_index: int) -> str:
         return self._texts[(phase, prefix_index, trial_index)]
 
-    def record_result(self, phase: str, prefix_index: int, trial_index: int, text: str) -> None:
+    def result_thinking(self, phase: str, prefix_index: int, trial_index: int) -> dict:
+        return self._thinking[(phase, prefix_index, trial_index)]
+
+    def record_result(self, phase: str, prefix_index: int, trial_index: int, text: str, thinking: dict) -> None:
         key = (phase, prefix_index, trial_index)
         existing = self._texts.get(key)
         if existing is not None:
@@ -128,8 +134,10 @@ class TextTrialProgress:
                 "trial_index": trial_index,
                 "prefix": self.prefixes[prefix_index],
                 "text": text,
+                "thinking": thinking,
             })
         self._texts[key] = text
+        self._thinking[key] = thinking
 
     def reset_prefixes(self, prefix_indices: list[int]) -> None:
         """Archive and reset exhausted prefixes so a later process can try them from scratch."""
@@ -154,6 +162,7 @@ class TextTrialProgress:
             if self.path is not None:
                 os.remove(self._result_path(*key))
             del self._texts[key]
+            del self._thinking[key]
 
         for phase, plan in list(self._plans.items()):
             retained = [prefix_index for prefix_index in plan if prefix_index not in reset]

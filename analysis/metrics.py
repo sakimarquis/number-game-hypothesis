@@ -6,7 +6,12 @@ Divergence, overlap, entropy, and correlation measures used across analysis modu
 import numpy as np
 from scipy.spatial.distance import jensenshannon
 
+from analysis.hypothesis_structuring import UNRESOLVED_REASONS
+
 HYPOTHESIS_TYPES = ("rule", "interval", "other")
+# KL lapse: q mixes in this much uniform mass, so a target q rules out costs a bounded penalty
+# instead of log(p / eps) blowing up the mean (hard top-1 choices leave many exact zeros).
+KL_LAPSE = 1e-3
 
 
 def shannon_entropy(values, *, base: float = np.e, empty: float = float("nan")) -> float:
@@ -26,12 +31,12 @@ def hypothesis_type(hyp: dict) -> str:
     return typ if typ in HYPOTHESIS_TYPES else "other"
 
 
-def type_proportions(kind_weights) -> dict[str, float]:
-    """Normalize positive (kind, weight) mass into rule/interval/other proportions."""
+def type_proportions(type_weights) -> dict[str, float]:
+    """Normalize positive (type, weight) mass into rule/interval/other proportions."""
     props = dict.fromkeys(HYPOTHESIS_TYPES, 0.0)
-    for kind, weight in kind_weights:
+    for hypothesis_type, weight in type_weights:
         if float(weight) > 0.0:
-            props[kind if kind in HYPOTHESIS_TYPES else "other"] += float(weight)
+            props[hypothesis_type] += float(weight)
     total = sum(props.values())
     return {key: value / total for key, value in props.items()} if total > 0.0 else props
 
@@ -42,8 +47,7 @@ def compute_hypothesis_generation_metrics(
 ) -> dict:
     """Quantitative metrics for structured hypothesis generation results.
 
-    Confidences are per-stimulus sum-normalized (treated as q(h|D)) for all
-    weighted metrics. Raw `mean_confidence` is kept as a self-reporting diagnostic.
+    Confidences weight the type proportions as per-stimulus q(h|D).
     """
     stimuli = {}
     for name in stimulus_names:
@@ -52,22 +56,29 @@ def compute_hypothesis_generation_metrics(
             continue
         types = [hypothesis_type(h) for h in hyps]
         counts = {typ: types.count(typ) for typ in HYPOTHESIS_TYPES}
+        other_reasons = dict.fromkeys(UNRESOLVED_REASONS, 0)
+        for h, typ in zip(hyps, types):
+            if typ == "other":
+                other_reasons[h["reason"]] += 1
         confs = np.array([h["confidence"] for h in hyps], dtype=float)
-        total_conf = confs.sum()
         stimuli[name] = {
             "n_hypotheses": len(hyps),
             "type_counts": counts,
+            "other_reasons": other_reasons,
             "type_proportions": {typ: count / len(hyps) for typ, count in counts.items()},
             "confidence_weighted_types": type_proportions(zip(types, confs)),
-            "mean_confidence": float(confs.mean()),
-            "top1_confidence_norm": float(confs.max() / total_conf) if total_conf > 0 else 0.0,
-            "confidence_entropy": shannon_entropy(confs, empty=0.0),
         }
     return {"stimuli": stimuli}
 
 
-def kl_divergence(p: np.ndarray, q: np.ndarray, eps: float = 1e-10) -> float:
-    """KL(p || q) over arrays, both normalized first; q is floor-smoothed.
+def rated_targets(human: np.ndarray) -> np.ndarray | None:
+    """Mask of human-rated targets (Tenenbaum99 ratings are sparse), or None with fewer than two."""
+    mask = ~np.isnan(human)
+    return mask if mask.sum() >= 2 else None
+
+
+def kl_divergence(p: np.ndarray, q: np.ndarray) -> float:
+    """KL(p || q) over arrays, both normalized first; q mixes in `KL_LAPSE` uniform mass.
 
     Used wherever a privileged reference (Bayesian, Human) sits on the p side;
     direction-asymmetric on purpose.
@@ -76,8 +87,7 @@ def kl_divergence(p: np.ndarray, q: np.ndarray, eps: float = 1e-10) -> float:
     if p_sum == 0 or q_sum == 0:
         return float("nan")
     p_norm = p / p_sum
-    q_smooth = q / q_sum + eps
-    q_smooth /= q_smooth.sum()
+    q_smooth = (1.0 - KL_LAPSE) * q / q_sum + KL_LAPSE / q.size
     mask = p_norm > 0
     return float(np.sum(p_norm[mask] * np.log(p_norm[mask] / q_smooth[mask])))
 

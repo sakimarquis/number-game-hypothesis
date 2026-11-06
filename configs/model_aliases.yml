@@ -1,65 +1,34 @@
-# Model registry: alias -> {id, display, default_backend, backends}
-# Each entry declares supported backends plus per-backend kwargs.
-
-# -- OpenAI -------------------------------------------------------
-gpt54:
-  id: "gpt-5.4"
-  display: "GPT54"
-  default_backend: openai
-  backends: {openai: {}}
-
-gpt54-mini:
-  id: "gpt-5.4-mini"
-  display: "GPT54_Mini"
-  default_backend: openai
-  backends: {openai: {}}
-
-# -- OpenRouter ---------------------------------------------------
-ox-alpha-high:
-  id: "stealth/ox-alpha"
-  display: "OxAlpha_High"
-  default_backend: openrouter
-  backends:
-    openrouter: {reasoning_effort: high, supports_logprobs: false, supports_json_schema: true}
-
-
-# -- OAI gateway ------------------------------------------------
-gpt56-luna:
-  id: "gpt-5.6-luna-none"
-  display: "GPT56_Luna"
-  default_backend: oai
-  backends: {oai: {}}
-
-gpt56-luna-high:
-  id: "gpt-5.6-luna-high"
-  display: "GPT56_Luna_thinking"
-  default_backend: oai
-  backends: {oai: {}}
-
-# -- Gemini Developer API ----------------------------------------
-gemini36-flash:
-  id: "gemini-3.6-flash"
-  display: "Gemini36_Flash"
-  default_backend: google_cloud
-  backends:
-    google_cloud: {api_key_env: GCP_Gemini, execution: batch, batch_priority: 1}
-
+# Model registry: alias -> {id, display, summary_color?, thinking_generation_tokens?, default_backend, backends}
+# Each entry declares supported backends plus per-backend kwargs. Models with a
+# summary_color appear in cross-model summaries, in file order.
+# thinking_generation_tokens overrides HYPOTHESIS_GENERATION token budgets for --thinking runs.
 
 # -- Gemma family (HF + local OpenAI-compatible server) ----------
+gemma4-a4b:
+  id: "google/gemma-4-26B-A4B-it"
+  display: "Gemma4_A4B"
+  summary_color: "#7e0610"
+  thinking_generation_tokens: {max_tokens: 4096, thinking_budget: 4096}
+  default_backend: hf
+  backends:
+    hf: {batch_size: 20, thinking_batch_size: 8}
+    local: {thinking_protocol: channel}
+
+gemma4-e4b:
+  id: "google/gemma-4-E4B-it"
+  display: "Gemma4_E4B"
+  summary_color: "#e83429"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 24, thinking_batch_size: 8}
+    local: {thinking_protocol: channel}
+
 gemma4-e2b:
   id: "google/gemma-4-E2B-it"
   display: "Gemma4_E2B"
   default_backend: hf
   backends:
     hf: {batch_size: 32, thinking_batch_size: 12}
-    local: {thinking_protocol: channel}
-
-gemma4-e4b:
-  id: "google/gemma-4-E4B-it"
-  display: "Gemma4_E4B"
-  default_backend: hf
-  backends:
-    hf: {batch_size: 24, thinking_batch_size: 8}
     local: {thinking_protocol: channel}
 
 gemma4-31b:
@@ -70,26 +39,13 @@ gemma4-31b:
     hf: {batch_size: 8, thinking_batch_size: 2}
     local: {thinking_protocol: channel}
 
-gemma4-a4b:
-  id: "google/gemma-4-26B-A4B-it"
-  display: "Gemma4_A4B"
-  default_backend: hf
-  backends:
-    hf: {batch_size: 20, thinking_batch_size: 8}
-    local: {thinking_protocol: channel}
-
 # -- Qwen family -------------------------------------------------
-qwen35-2b:
-  id: "Qwen/Qwen3.5-2B"
-  display: "Qwen35_2B"
-  default_backend: hf
-  backends:
-    hf: {batch_size: 32, thinking_batch_size: 12}
-    local: {thinking_protocol: text}
-
-qwen35-4b:
-  id: "Qwen/Qwen3.5-4B"
-  display: "Qwen35_4B"
+qwen36_a3b:
+  id: "Qwen/Qwen3.6-35B-A3B"
+  display: "Qwen36_A3B"
+  summary_color: "#083c7d"
+  # Thinking exhausts the default 4096-token generation cap on Bigelow16 prefixes.
+  thinking_generation_tokens: {max_tokens: 4096, thinking_budget: 4096}
   default_backend: hf
   backends:
     hf: {batch_size: 24, thinking_batch_size: 8}
@@ -97,6 +53,26 @@ qwen35-4b:
     tinker:
       renderer: "qwen3_5_disable_thinking"
       thinking_renderer: "qwen3_5"
+
+qwen35-4b:
+  id: "Qwen/Qwen3.5-4B"
+  display: "Qwen35_4B"
+  summary_color: "#3b8bc2"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 24, thinking_batch_size: 8}
+    local: {thinking_protocol: text}
+    tinker:
+      renderer: "qwen3_5_disable_thinking"
+      thinking_renderer: "qwen3_5"
+
+qwen35-2b:
+  id: "Qwen/Qwen3.5-2B"
+  display: "Qwen35_2B"
+  default_backend: hf
+  backends:
+    hf: {batch_size: 32, thinking_batch_size: 12}
+    local: {thinking_protocol: text}
 
 qwen35-9b:
   id: "Qwen/Qwen3.5-9B"
@@ -117,32 +93,32 @@ qwen35-27b:
       renderer: "qwen3_5_disable_thinking"
       thinking_renderer: "qwen3_5"
 
-qwen36_a3b:
-  id: "Qwen/Qwen3.6-35B-A3B"
-  display: "Qwen36_A3B"
-  default_backend: hf
-  backends:
-    hf: {batch_size: 24, thinking_batch_size: 8}
-    local: {thinking_protocol: text}
-    tinker:
-      renderer: "qwen3_5_disable_thinking"
-      thinking_renderer: "qwen3_5"
+# -- OpenAI -------------------------------------------------------
+gpt54:
+  id: "gpt-5.4"
+  display: "GPT54"
+  default_backend: openai
+  backends: {openai: {}}
+
+gpt56-luna:
+  id: "gpt-5.6-luna-none"
+  display: "GPT56_Luna"
+  summary_color: "#1b5e20"
+  default_backend: oai
+  backends: {oai: {}}
+
+gpt54-mini:
+  id: "gpt-5.4-mini"
+  display: "GPT54_Mini"
+  summary_color: "#55A868"
+  default_backend: openai
+  backends: {openai: {}}
 
 # -- Tinker-default models, also runnable through local servers ---
-kimi-k26:
-  id: "moonshotai/Kimi-K2.6"
-  display: "Kimi_K26"
-  default_backend: tinker
-  backends:
-    tinker:
-      renderer: "kimi_k25_disable_thinking"
-      thinking_renderer: "kimi_k25"
-      tokenizer_trust_remote_code: true
-    local: {thinking_protocol: text}
-
 nemotron3-nano:
   id: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
   display: "Nemotron3_Nano"
+  summary_color: "#fde724"
   default_backend: tinker
   backends:
     tinker:
@@ -159,3 +135,38 @@ nemotron3-super:
       renderer: "nemotron3_disable_thinking"
       thinking_renderer: "nemotron3"
     local: {thinking_protocol: text}
+
+kimi-k26:
+  id: "moonshotai/Kimi-K2.6"
+  display: "Kimi_K26"
+  default_backend: tinker
+  backends:
+    tinker:
+      renderer: "kimi_k25_disable_thinking"
+      thinking_renderer: "kimi_k25"
+      tokenizer_trust_remote_code: true
+    local: {thinking_protocol: text}
+
+# -- OpenRouter ---------------------------------------------------
+ox-alpha-high:
+  id: "stealth/ox-alpha"
+  display: "OxAlpha_High"
+  default_backend: openrouter
+  backends:
+    openrouter: {reasoning_effort: high, supports_json_schema: true}
+
+# -- OAI gateway ------------------------------------------------
+gpt56-luna-high:
+  id: "gpt-5.6-luna-high"
+  display: "GPT56_Luna_thinking"
+  default_backend: oai
+  backends: {oai: {}}
+
+# -- Gemini Developer API ----------------------------------------
+gemini36-flash:
+  id: "gemini-3.6-flash"
+  display: "Gemini36_Flash"
+  summary_color: "#8172B3"
+  default_backend: google_cloud
+  backends:
+    google_cloud: {api_key_env: GCP_Gemini, execution: batch, batch_priority: 1, supports_json_schema: true}

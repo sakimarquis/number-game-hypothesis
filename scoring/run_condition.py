@@ -31,10 +31,10 @@ async def score_condition(
     failure_log_path: str | None = None,
     progress_path: str | None = None,
     progress_identity: dict | None = None,
-) -> tuple[dict[tuple[int, ...], Any], dict[tuple[int, ...], dict[str, Any]] | None]:
+) -> tuple[dict[tuple[int, ...], Any], dict[tuple[int, ...], dict[str, Any]] | None, dict[tuple[int, ...], list[dict]] | None]:
     """Score all unique stimulus prefixes for one condition in a single batched call.
 
-    Returns the flat prefix cache plus optional per-prefix diagnostics.
+    Returns the flat prefix cache plus optional per-prefix diagnostics and thinking records.
     Dedup assumes scorer output is a stable function of the prefix:
     shared prefixes intentionally share the same scorer result.
     """
@@ -50,4 +50,5 @@ async def score_condition(
     return (
         dict(zip(keys, scored.values)),
         dict(zip(keys, diagnostics)) if diagnostics is not None else None,
+        dict(zip(keys, scored.thinking)) if scored.thinking is not None else None,
     )

@@ -35,6 +35,7 @@ class ThinkingProtocol:
 class ThinkingSplit:
     final_text: str
     thinking_text: str
+    thinking_tokens: int
 
 
 def text_thinking_protocol() -> ThinkingProtocol:
@@ -243,6 +244,7 @@ class HfThinkingCodec:
         return ThinkingSplit(
             final_text=self.tokenizer.decode(ids[end + len(self.protocol.end_ids):], skip_special_tokens=True).strip(),
             thinking_text=self.tokenizer.decode(ids[:end], skip_special_tokens=True).strip(),
+            thinking_tokens=end,
         )
 
     def _resolve_protocol(self) -> ThinkingProtocol:

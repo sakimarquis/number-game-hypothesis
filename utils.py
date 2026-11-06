@@ -35,11 +35,6 @@ def load_yaml(file_path: str) -> dict:
         return yaml.load(f)
 
 
-def slugify_stimulus(name: str) -> str:
-    """Turn a stimulus name like 'D={16,8,2,64}' into a filename-safe slug."""
-    return name.replace(" ", "_").replace(",", "_").replace("{", "").replace("}", "").replace("=", "")
-
-
 def load_json(path: str) -> dict | None:
     """Load JSON file, or None if it doesn't exist."""
     if not os.path.exists(path):

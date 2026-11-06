@@ -6,11 +6,13 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 from analysis.alpha_beta_scope import PREFIX_LENGTHS
+from configs.settings import HYPOTHESIS_H_SPACE
 from analysis.plotter import (
     set_mpl, save_fig, with_model, filter_canonical_prompts,
     plot_trajectory_sem, plot_prompt_kind_bar, task_domain_series,
     C_BAYESIAN, C_PRIOR, C_LIKELIHOOD, EVAL_MODE_LABELS, HYP_TYPE_COLORS,
     PROMPT_PALETTE,
+    with_task_domain,
 )
 
 set_mpl(size=8)
@@ -29,8 +31,8 @@ def plot_prompt_sensitivity(df: pd.DataFrame, output_path: str):
     sns.barplot(
         data=prompt_df, x="h_space", y="kl_bayes", hue="h_space",
         order=["explicit", "implicit"],
-        palette={"explicit": PROMPT_PALETTE["strong explicit"],
-                 "implicit": PROMPT_PALETTE["strong implicit"]},
+        palette={"explicit": PROMPT_PALETTE["explicit_strong"],
+                 "implicit": PROMPT_PALETTE["implicit_strong"]},
         errorbar="se", capsize=0.1, legend=False, ax=axes[0],
     )
     sns.barplot(
@@ -103,15 +105,16 @@ def plot_confidence_weighted_types(df: pd.DataFrame, output_path: str, result_ke
     save_fig(fig, output_path, tight_layout=False)
 
 
-def plot_trajectory_rule_by_kind(df: pd.DataFrame, output_path: str):
+def plot_trajectory_rule_mass(df: pd.DataFrame, output_path: str):
     """All-stimulus rule-mass trajectory, lines = eval/generation x strong/weak."""
-    df = filter_canonical_prompts(df).copy()
+    df = filter_canonical_prompts(df)
     if df.empty:
         return
 
-    df["task_domain"] = df["task"] + "/d" + df["domain"].astype(str)
+    df = with_task_domain(df)
     series = []
-    for eval_mode, h_space, fmt in [("hypothesis_eval", "explicit", "-s"), ("hypothesis_generation", "implicit", "--o")]:
+    for eval_mode, fmt in [("hypothesis_eval", "-s"), ("hypothesis_generation", "--o")]:
+        h_space = HYPOTHESIS_H_SPACE[eval_mode]
         for sampling in ("strong", "weak"):
             sub = df[(df["eval_mode"] == eval_mode) & (df["sampling"] == sampling)].dropna(subset=["cw_rule"])
             if sub.empty:
@@ -119,7 +122,7 @@ def plot_trajectory_rule_by_kind(df: pd.DataFrame, output_path: str):
             xs, ys, sems = task_domain_series(sub, "cw_rule")
             series.append({
                 "x": xs, "y": ys, "y_err": sems, "label": f"{EVAL_MODE_LABELS[eval_mode]} {sampling}",
-                "color": PROMPT_PALETTE[f"{sampling} {h_space}"], "fmt": fmt,
+                "color": PROMPT_PALETTE[f"{h_space}_{sampling}"], "fmt": fmt,
             })
 
     if series:

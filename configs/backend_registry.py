@@ -42,7 +42,19 @@ API_PROVIDER_CONFIGS = {
 }
 
 API_BACKENDS = frozenset(API_PROVIDER_CONFIGS)
-HOSTED_OAI_BACKENDS = frozenset({"openai", "openrouter"})
 TOGGLE_THINKING_BACKENDS = frozenset({"hf", "tinker", "local", "google_cloud"})
 # Backends whose transport never returns response logprobs.
 NO_LOGPROB_BACKENDS = frozenset({"oai", "google_cloud"})
+
+
+def top_logprobs(backend: str) -> int:
+    """Logprob alternatives requested per answer slot; hosted OpenAI/OpenRouter cap it at 5.
+
+    Non-API logit backends never send it but record 20 in raw-cache identities.
+    """
+    return 5 if backend in {"openai", "openrouter"} else 20
+
+
+def reasoning_enabled(reasoning_effort: str | None) -> bool:
+    """Whether a provider reasoning effort consumes reasoning tokens."""
+    return reasoning_effort not in (None, "none")

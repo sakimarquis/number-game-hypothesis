@@ -220,14 +220,7 @@ class GeminiBatchExecutor:
             os.replace(staging, request_path)
 
         if not manifest:
-            manifest = {
-                "schema": 1,
-                "model": self.model_id,
-                "batch_key": batch_key,
-                "request_hash": request_hash,
-                "request_count": len(requests),
-                "state": "LOCAL_PREPARED",
-            }
+            manifest = {"batch_key": batch_key, "request_hash": request_hash, "state": "LOCAL_PREPARED"}
             save_json(str(manifest_path), manifest)
 
         job_name = manifest.get("job_name")

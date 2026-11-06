@@ -1,95 +1,17 @@
-"""Size principle analysis: entropy, support, and KL by evidence prefix length."""
+"""Nested-pair size-principle diagnostic on final hypothesis_eval outputs."""
 
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
-from analysis.cache import load_condition_final, task_context
+from analysis.cache import load_condition_final
 from analysis.hypothesis_space import prompt_items
-from analysis.metrics import kl_divergence, shannon_entropy
+from analysis.metrics import shannon_entropy
 from analysis.plotter import save_csv, with_all_kinds
 from configs.settings import Experiment, make_grid
 from tasks.prompt_space import build_prompt_space_spec
-
-
-def compute_effective_support(preds: np.ndarray, threshold: float = 0.5) -> int:
-    """Number of targets with p(yes) > threshold."""
-    return int((preds > threshold).sum())
-
-
-def size_principle_curves(
-    trajectories: dict[str, dict],
-    stimuli: list,
-    label: str,
-    bayesian_trajectories: dict[str, dict] | None = None,
-) -> pd.DataFrame:
-    """Compute size-principle metrics per prefix step across a trajectory.
-
-    Each prefix step contributes one row, binned by its own prefix length as
-    n_examples — so a single size-4 stimulus yields 4 points (lengths 1..4).
-    Tenenbaum99 and Bigelow16 go through the same path; asymmetry between
-    tasks comes only from how many prefix steps each stimulus carries.
-
-    Args:
-        trajectories: {name: {"n_examples": [...], "results": [step_preds, ...]}}
-        stimuli: list of StimulusSet objects (for full example lookup)
-        label: source identifier ("bayesian", "llm", "human")
-        bayesian_trajectories: same shape — if given, KL(bayesian || preds) per step
-
-    Returns:
-        DataFrame with columns: stimulus, n_examples, entropy, effective_support,
-        kl_bayes (optional), source
-    """
-    stimulus_map = {c.name: c for c in stimuli}
-    rows = []
-    for name, traj in trajectories.items():
-        stimulus = stimulus_map.get(name)
-        if stimulus is None:
-            continue
-        bay_steps = (bayesian_trajectories or {}).get(name)
-        for i, (n, step) in enumerate(zip(traj["n_examples"], traj["results"])):
-            preds = np.asarray(step, dtype=float)
-            row = {
-                "stimulus": name,
-                "n_examples": n,
-                "entropy": shannon_entropy(preds, empty=0.0),
-                "effective_support": compute_effective_support(preds),
-                "source": label,
-            }
-            if bay_steps is not None and i < len(bay_steps["results"]):
-                bay_preds = np.asarray(bay_steps["results"][i], dtype=float)
-                row["kl_bayes"] = kl_divergence(bay_preds, preds)
-            rows.append(row)
-    return pd.DataFrame(rows)
-
-
-def human_kl_curves(
-    trajectories: dict[str, dict],
-    stimuli: list,
-    human_preds: dict[str, np.ndarray],
-) -> pd.DataFrame:
-    """KL from full human ratings to each LLM prefix prediction."""
-    stimulus_map = {c.name: c for c in stimuli}
-    rows = []
-    for name, traj in trajectories.items():
-        stimulus = stimulus_map.get(name)
-        if stimulus is None or name not in human_preds:
-            continue
-        human = np.asarray(human_preds[name], dtype=float)
-        mask = ~np.isnan(human)
-        if mask.sum() < 2:
-            continue
-        for n, step in zip(traj["n_examples"], traj["results"]):
-            preds = np.asarray(step, dtype=float)
-            rows.append({
-                "stimulus": name,
-                "stimulus_kind": stimulus.kind,
-                "n_examples": n,
-                "kl_human": kl_divergence(human[mask], preds[mask]),
-                "source": "llm",
-            })
-    return pd.DataFrame(rows)
+from tasks.stimuli import build_task_context
 
 
 # ===== Nested-pair size-principle diagnostic =====
@@ -140,18 +62,19 @@ def compute_prompt_entropy(result: dict[str, float], prompt_labels: list[str]) -
     return shannon_entropy(float(result.get(label, 0.0)) for label in prompt_labels)
 
 
-def collect_pair_metrics(experiment: Experiment, result_key: str) -> pd.DataFrame:
+def collect_pair_metrics(experiment: Experiment) -> pd.DataFrame:
     """Collect one row per nested pair and sampling condition from final hypothesis_eval outputs.
 
     The prompt-local pair structure depends only on (task, domain, stimulus), so
     it is precomputed once per context and reused across sampling conditions.
     """
+    result_key = experiment.backend.result_key
     rows = []
     stimulus_specs_by_context = {}
     for condition in make_grid(experiment):
         if condition.eval_mode != "hypothesis_eval":
             continue
-        ctx = task_context(experiment, condition.task, condition.domain)
+        ctx = build_task_context(condition.task, condition.domain)
         if ctx.rule_families is not None:
             print(f"    Nested pair: skipping {condition.task} d{condition.domain} (grouped transform families)")
             continue
@@ -347,20 +270,20 @@ def fit_pooled_slopes(delta_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def run_nested_pair(experiment: Experiment, output_dir: str, result_key: str, figure_dir: str) -> pd.DataFrame:
+def run_nested_pair(experiment: Experiment, analysis_dir: str, figure_dir: str) -> pd.DataFrame:
     """Run the nested-pair size-principle diagnostic on final hypothesis_eval outputs."""
-    pair_df = collect_pair_metrics(experiment, result_key)
-    save_csv(pair_df.to_dict("records"), output_dir, "nested_pair_pair_metrics.csv")
+    pair_df = collect_pair_metrics(experiment)
+    save_csv(pair_df, analysis_dir, "nested_pair_pair_metrics.csv")
     if pair_df.empty:
         print("  Nested pair: no direct-semantics hypothesis_eval data found")
         return pair_df
 
     delta_df = compute_pair_deltas(pair_df)
-    save_csv(delta_df.to_dict("records"), output_dir, "nested_pair_paired_deltas.csv")
+    save_csv(delta_df, analysis_dir, "nested_pair_paired_deltas.csv")
     if delta_df.empty:
         print("  Nested pair: no paired sampling comparisons found")
         return delta_df
 
-    save_csv(fit_stimulus_slopes(delta_df).to_dict("records"), output_dir, "nested_pair_stimulus_slopes.csv")
-    save_csv(fit_pooled_slopes(delta_df).to_dict("records"), output_dir, "nested_pair_pooled_slopes.csv")
+    save_csv(fit_stimulus_slopes(delta_df), analysis_dir, "nested_pair_stimulus_slopes.csv")
+    save_csv(fit_pooled_slopes(delta_df), analysis_dir, "nested_pair_pooled_slopes.csv")
     return delta_df

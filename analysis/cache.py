@@ -1,4 +1,4 @@
-"""Cache I/O: prefix caches, condition trajectories, Bayesian baselines, and task contexts.
+"""Analysis cache reads: condition trajectories and memoized Bayesian baselines.
 
 Pure I/O + glue. No plotting; baseline plotting lives in analysis/bayesian.py.
 """
@@ -10,39 +10,69 @@ from functools import lru_cache
 
 import numpy as np
 
-from configs.layout import bayesian_cache_paths, condition_data_path, human_analysis_cache_path
-from configs.settings import Experiment, ExperimentCondition
-from analysis.model import NumberGameModel, compute_alpha_beta_ablations, fit_alpha_beta
-from tasks.stimuli import TaskContext, TaskData, build_task_context, make_task
-from utils import load_json, save_json, group_by
-
+from configs.layout import bayesian_cache_dir, bayesian_cache_paths, condition_data_path
+from configs.settings import BayesianConfig, Experiment, ExperimentCondition
+from analysis.model import NumberGameModel
+from scoring.cache import load_prefix_cache
+from tasks.stimuli import TASK_RULE_SPACES, TaskContext, TaskData, build_task_context, make_task
+from utils import load_json, save_json
 
 BAYESIAN_CACHE_SCHEMA = 1
 
 
-def task_context(experiment: Experiment, task: str, domain: int) -> TaskContext:
-    """Domain-valid task data and rule space for one configured task/domain."""
-    featured = experiment.tasks[task].featured_stimuli
-    return build_task_context(
-        task, domain, experiment.bayesian.natural_intervals,
-        tuple(featured) if featured is not None else None,
-    )
+@dataclass(frozen=True)
+class BayesianBaseline:
+    """One task/domain context with its Bayesian model and cached predictions."""
+    ctx: TaskContext
+    model: NumberGameModel
+    predictions: dict[str, np.ndarray]
+    rule_posteriors: dict[str, dict[str, float]]  # {stimulus: {rule description | "other": mass}}
 
 
-_model_cache: dict[tuple, NumberGameModel] = {}
+def bayesian_baseline(experiment: Experiment, task: str, domain: int) -> BayesianBaseline:
+    """Bayesian baseline for one task/domain, memoized per run.
+
+    Loads cached predictions whose identity matches the live experiment; missing or stale baselines are rebuilt and saved.
+    """
+    return _bayesian_baseline(task, domain, experiment.bayesian, bayesian_cache_dir(task, domain))
 
 
-def bayesian_model(experiment: Experiment, task: str, domain: int) -> NumberGameModel:
-    """NumberGameModel for one task/domain, memoized across calls in a run."""
-    featured = experiment.tasks[task].featured_stimuli
-    key = (task, domain, experiment.bayesian, None if featured is None else tuple(featured))
-    if key not in _model_cache:
-        ctx = task_context(experiment, task, domain)
-        _model_cache[key] = NumberGameModel(
-            ctx.rules, ctx.intervals, lam=experiment.bayesian.lam, sigma=experiment.bayesian.sigma,
-            max_integer=domain,
-        )
-    return _model_cache[key]
+def bayesian_cache_identity(config: BayesianConfig, task: str, domain: int) -> dict:
+    """Describe every configured input that changes one Bayesian baseline."""
+    preset, transforms = TASK_RULE_SPACES[task]
+    return {
+        "schema": BAYESIAN_CACHE_SCHEMA,
+        "task": task,
+        "domain": domain,
+        "bayesian": asdict(config),
+        "task_config": {
+            "base_preset": preset,
+            "transforms": list(transforms),
+            "stimuli": [asdict(stimulus) for stimulus in build_task_context(task, domain).task.stimuli],
+        },
+    }
+
+
+@lru_cache(maxsize=None)
+def _bayesian_baseline(task: str, domain: int, config: BayesianConfig, cache_dir: str) -> BayesianBaseline:
+    # cache_dir keys the memo so a different results root never reuses another root's baseline.
+    ctx = build_task_context(task, domain)
+    model = NumberGameModel(ctx.rules, ctx.intervals, lam=config.lam, sigma=config.sigma, domain=domain)
+    paths = bayesian_cache_paths(task, domain)
+    identity = bayesian_cache_identity(config, task, domain)
+    # The identity file is written last, so a matching identity implies complete prediction files.
+    if os.path.exists(paths["identity"]) and load_json(paths["identity"]) == identity:
+        preds = {k: np.array(v) for k, v in load_json(paths["predictions"]).items()}
+        rule_posteriors = load_json(paths["rule_posteriors"])
+        print(f"  [{task} d{domain}] Loaded cached Bayesian predictions")
+    else:
+        preds = {c.name: model.predict(c.examples).cpu().numpy() for c in ctx.task.stimuli}
+        rule_posteriors = {c.name: model.rule_posteriors(c.examples) for c in ctx.task.stimuli}
+        save_json(paths["predictions"], preds)
+        save_json(paths["rule_posteriors"], rule_posteriors)
+        save_json(paths["identity"], identity)
+        print(f"  [{task} d{domain}] Computed and saved Bayesian predictions")
+    return BayesianBaseline(ctx, model, preds, rule_posteriors)
 
 
 def reconstruct_trajectory(cache: dict[tuple[int, ...], object], task_data: TaskData,
@@ -80,19 +110,6 @@ def trajectory_steps(trajectory: dict | None, stimulus: str) -> dict[int, object
     return dict(zip(trajectory[stimulus]["n_examples"], trajectory[stimulus]["results"]))
 
 
-def serialize_prefix_cache(cache: dict[tuple[int, ...], object]) -> dict[str, object]:
-    """Encode tuple prefix keys for the on-disk JSON payload."""
-    return {
-        json.dumps(list(prefix), separators=(",", ":")): result
-        for prefix, result in cache.items()
-    }
-
-
-def load_prefix_cache(raw: dict) -> dict[tuple[int, ...], object]:
-    """Decode the on-disk flat prefix-cache payload."""
-    return {tuple(json.loads(k)): v for k, v in raw["prefix_cache"].items()}
-
-
 def condition_analysis_path(condition: ExperimentCondition, result_key: str,
                             *, results_root: str | None = None) -> str:
     """Analysis consumes structured generations; scoring retains its raw file."""
@@ -104,22 +121,54 @@ def condition_analysis_path(condition: ExperimentCondition, result_key: str,
 def _load_condition_trajectory_cached(data_path: str, mtime_ns: int, task: str) -> dict:
     """Cache trajectory reconstruction for one immutable condition payload version."""
     raw = load_json(data_path)
-    return reconstruct_trajectory(
-        load_prefix_cache(raw), make_task(task),
+    task_data = make_task(task)
+    trajectory = reconstruct_trajectory(
+        load_prefix_cache(raw), task_data,
         stimulus_set_names=raw["experiment_condition"].get("stimulus_set_names"),
     )
+    if raw.get("cache_identity", {}).get("mode_config", {}).get("method") == "text_trials":
+        # Each text-trial vector is a frequency over that prefix's valid vectors, which can be fewer than n_trials.
+        trials = {tuple(json.loads(k)): v["valid_vectors"] for k, v in raw["posterior_diagnostics"]["per_prefix"].items()}
+        for name, ev in trajectory.items():
+            examples = task_data.stimulus_map[name].examples
+            ev["trials"] = [trials[tuple(examples[:n])] for n in ev["n_examples"]]
+    return trajectory
 
 
 def load_condition_trajectory(condition: ExperimentCondition, result_key: str,
-                              *, results_root: str | None = None) -> dict | None:
+                              *, results_root: str | None = None, log_space: bool = False) -> dict | None:
     """Load one condition's trajectory, reconstructed from the cached condition payload.
 
-    Returns {stimulus_name: {"n_examples": [...], "results": [step1, ...]}} or None.
+    Returns {stimulus_name: {"n_examples": [...], "results": [step1, ...]}} or None; text-trial
+    posteriors also carry "trials" (valid vectors per step). `log_space` smooths those results.
     """
     data_path = condition_analysis_path(condition, result_key, results_root=results_root)
     if not os.path.exists(data_path):
         return None
-    return _load_condition_trajectory_cached(data_path, os.stat(data_path).st_mtime_ns, condition.task) or None
+    trajectory = _load_condition_trajectory_cached(data_path, os.stat(data_path).st_mtime_ns, condition.task) or None
+    if log_space and trajectory:
+        # Copy: the cached trajectory keeps raw frequencies for linear metrics.
+        trajectory = {
+            name: {**ev, "results": [smooth_text_trials(r, n) for r, n in zip(ev["results"], ev["trials"])]}
+            if "trials" in ev else ev
+            for name, ev in trajectory.items()
+        }
+    return trajectory
+
+
+def smooth_text_trials(vector, trials: int | None) -> np.ndarray:
+    """Jeffreys-smoothed marginals (k + 0.5) / (n + 1) for a vector of k/n text-trial frequencies.
+
+    Log-space metrics (KL, entropy, JS) use this instead of the raw frequencies, whose zeros only mean
+    "not chosen in n trials" and would otherwise be read as impossible. `trials=None` (logits) is unchanged.
+    """
+    vector = np.asarray(vector, dtype=float)
+    return vector if trials is None else (vector * trials + 0.5) / (trials + 1)
+
+
+def step_trials(ev: dict) -> list[int | None]:
+    """Valid text trials behind each step's result; None for every step of a logits or non-posterior result."""
+    return ev.get("trials") or [None] * len(ev["results"])
 
 
 def trajectory_finals(trajectory: dict, eval_mode: str) -> dict:
@@ -131,120 +180,7 @@ def trajectory_finals(trajectory: dict, eval_mode: str) -> dict:
 
 
 def load_condition_final(condition: ExperimentCondition, result_key: str,
-                         *, results_root: str | None = None) -> dict | None:
+                         *, results_root: str | None = None, log_space: bool = False) -> dict | None:
     """Load one condition's final (last-prefix) result per stimulus, or None."""
-    traj = load_condition_trajectory(condition, result_key, results_root=results_root)
+    traj = load_condition_trajectory(condition, result_key, results_root=results_root, log_space=log_space)
     return trajectory_finals(traj, condition.eval_mode) if traj else None
-
-
-@lru_cache(maxsize=None)
-def _load_bayesian_cached(preds_path: str, preds_mtime_ns: int, hyps_path: str, hyps_mtime_ns: int) -> tuple[dict, dict]:
-    """Cache Bayesian baseline loads for one immutable file pair version."""
-    preds = {k: np.array(v) for k, v in load_json(preds_path).items()}
-    return preds, load_json(hyps_path)
-
-
-def bayesian_cache_identity(experiment: Experiment, task: str, domain: int) -> dict:
-    """Describe every configured input that changes one Bayesian baseline."""
-    task_data = task_context(experiment, task, domain).task
-    return {
-        "schema": BAYESIAN_CACHE_SCHEMA,
-        "task": task,
-        "domain": domain,
-        "bayesian": asdict(experiment.bayesian),
-        "task_config": {
-            "base_preset": task_data.base_preset,
-            "transforms": list(task_data.transforms),
-            "stimuli": [asdict(stimulus) for stimulus in task_data.stimuli],
-        },
-    }
-
-
-def load_bayesian(task: str, domain: int, expected_identity: dict,
-                  *, results_root: str | None = None) -> tuple[dict, dict]:
-    """Load Bayesian predictions and hypothesis posteriors for (task, domain) when their identity matches.
-
-    Returns (preds: {stimulus_name: np.ndarray}, hyp_preds: {stimulus_name: {hyp: float}}), or empty dicts.
-    """
-    paths = bayesian_cache_paths(task, domain, results_root=results_root)
-    if not os.path.exists(paths["predictions"]) or not os.path.exists(paths["hypotheses"]):
-        return {}, {}
-    if load_json(paths["identity"]) != expected_identity:
-        return {}, {}
-    return _load_bayesian_cached(
-        paths["predictions"], os.stat(paths["predictions"]).st_mtime_ns,
-        paths["hypotheses"], os.stat(paths["hypotheses"]).st_mtime_ns,
-    )
-
-
-@dataclass(frozen=True)
-class BayesianBaseline:
-    """One task/domain context with its Bayesian model and cached predictions."""
-    ctx: TaskContext
-    model: NumberGameModel
-    predictions: dict[str, np.ndarray]
-    hypotheses: dict[str, dict[str, float]]
-
-
-def build_bayesian(experiment: Experiment, conditions, *, recompute: bool = False) -> dict[tuple[str, int], BayesianBaseline]:
-    """Build Bayesian baselines for all unique (task, domain) pairs.
-
-    Loads predictions only when their identity matches the live experiment.
-    With ``recompute=True``, missing or stale baselines are rebuilt and saved;
-    otherwise they fail closed so LLM runs cannot silently change baselines.
-    """
-    baselines = {}
-    for (task_name, domain), _ in group_by(conditions, lambda c: c.context_key):
-        ctx = task_context(experiment, task_name, domain)
-        model = bayesian_model(experiment, task_name, domain)
-        identity = bayesian_cache_identity(experiment, task_name, domain)
-        preds, hyp_preds = load_bayesian(task_name, domain, identity)
-        if preds and hyp_preds:
-            print(f"  [{task_name} d{domain}] Loaded cached Bayesian predictions")
-        elif not recompute:
-            raise FileNotFoundError(
-                f"Missing or stale Bayesian baseline for {task_name} d{domain}. "
-                "Run `python run_number_game.py --model bayesian` first."
-            )
-        else:
-            preds = {c.name: model.predict(c.examples).cpu().numpy() for c in ctx.task.stimuli}
-            hyp_preds = {c.name: model.math_rule_posteriors(c.examples) for c in ctx.task.stimuli}
-            paths = bayesian_cache_paths(task_name, domain)
-            save_json(paths["predictions"], preds)
-            save_json(paths["hypotheses"], hyp_preds)
-            save_json(paths["identity"], identity)
-            print(f"  [{task_name} d{domain}] Computed and saved Bayesian predictions")
-        baselines[(task_name, domain)] = BayesianBaseline(ctx, model, preds, hyp_preds)
-    return baselines
-
-
-def build_human_analysis(baselines: dict[tuple[str, int], BayesianBaseline]) -> dict[tuple[str, int], dict]:
-    """Fit human α-β per (task, domain) and cache the fits under results/human/analysis/.
-
-    NaN targets (Tenenbaum99 sparse sampling) are masked inside fit_alpha_beta.
-    """
-    fits = {}
-    for (task_name, domain), baseline in baselines.items():
-        task_data = baseline.ctx.task
-        if not task_data.human_preds:
-            continue
-        fit = fit_alpha_beta([(baseline.model, task_data.human_preds, task_data.stimuli)])
-        fit = {
-            **fit,
-            **compute_alpha_beta_ablations(
-                baseline.model, task_data.human_preds, task_data.stimuli, fit["best_alpha"], fit["best_beta"],
-            ),
-        }
-        save_json(human_analysis_cache_path(task_name, domain), {
-            key: fit[key] for key in ("best_alpha", "best_beta", "best_loss", "n_stimuli", "ablation_mse")
-        })
-        print(f"  [{task_name} d{domain}] Human α-β fit: "
-              f"α={fit['best_alpha']:.2f} β={fit['best_beta']:.2f} "
-              f"(MSE={fit['best_loss']:.6f})")
-        fits[(task_name, domain)] = fit
-    return fits
-
-
-def load_human_alpha_beta_fit(task_name: str, domain: int) -> dict | None:
-    """Load cached model-agnostic human alpha-beta fit for one task/domain."""
-    return load_json(human_analysis_cache_path(task_name, domain))

@@ -1,4 +1,4 @@
-"""Hypothesis-interface comparison stages.
+"""Hypothesis-mode comparison stages.
 
 run_hypothesis_fit fits LLM posterior behavior to its own hypothesis_eval label
 space. For every (task, domain, sampling, stimulus, prefix) where both modes ran:
@@ -32,21 +32,19 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 from analysis.alpha_beta_scope import PREFIX_LENGTHS
-from analysis.cache import load_condition_trajectory, task_context, trajectory_steps
+from analysis.cache import load_condition_trajectory, trajectory_steps
 from analysis.hypothesis_space import (
-    eval_lookup,
+    RULE_SHARE_TOP_K,
+    eval_mapper,
+    generation_mapper,
     load_hypothesis_library,
-    map_eval_label,
-    map_structured_generation_item,
-    normalize_hypothesis_weight_dict,
     normalize_structured_generation_confidence,
     normalized_hypothesis_items,
-    project_hypothesis_eval,
-    project_posterior,
-    project_structured_hypothesis_generation,
+    project_result,
     prompt_items,
 )
-from analysis.metrics import compute_topk_overlap_vectors, jensen_shannon_distance, shannon_entropy
+from analysis.model import DEVICE
+from analysis.metrics import HYPOTHESIS_TYPES, compute_topk_overlap_vectors, jensen_shannon_distance, shannon_entropy
 from analysis.plotter import (
     EVAL_MODE_LABELS,
     PROMPT_PALETTE,
@@ -56,34 +54,32 @@ from analysis.plotter import (
     set_mpl,
     task_domain_series,
     with_model,
+    with_task_domain,
 )
 from analysis.trajectory import plot_prompt_trajectory
-from configs.settings import Experiment, ExperimentCondition
-from utils import save_json
+from configs.settings import HYPOTHESIS_H_SPACE, Experiment, ExperimentCondition
+from tasks.prompts import SAMPLING_BLOCKS
+from tasks.stimuli import build_task_context
 
 _OTHER_LABEL = "other"
 _RIDGE = 1e-6
 _TOP_K = 5
-_DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-_SAMPLING_ORDER = ("default", "strong", "weak", "pedagogical", "adversarial")
-# Frame pairs: eval is explicit-only and generation implicit-only by grid contract.
-_EVAL = ("hypothesis_eval", "explicit")
-_GENERATION = ("hypothesis_generation", "implicit")
+_EVAL = ("hypothesis_eval", HYPOTHESIS_H_SPACE["hypothesis_eval"])
+_GENERATION = ("hypothesis_generation", HYPOTHESIS_H_SPACE["hypothesis_generation"])
 _JS_DISTANCE_METRICS = (
     ("posterior_vs_eval_js_distance", f"JS distance ({EVAL_MODE_LABELS['posterior']}, {EVAL_MODE_LABELS['hypothesis_eval']})"),
     ("posterior_vs_generation_js_distance", f"JS distance ({EVAL_MODE_LABELS['posterior']}, {EVAL_MODE_LABELS['hypothesis_generation']})"),
 )
 _ENTROPY_TRAJECTORY_SPECS = (
     ("entropy_bits_mean", "hypothesis_entropy.png", "Entropy (bits)"),
-    ("matched_mass_mean", "hypothesis_matched_mass.png", "Matched mass"),
-    ("unmatched_mass_mean", "hypothesis_unmatched_mass.png", "Unmatched mass"),
+    ("other_mass_mean", "hypothesis_other_mass.png", "Other mass"),
 )
 _ENTROPY_LINE_SPECS = tuple(
     (eval_mode, sampling, h_space, fmt)
     for eval_mode, h_spaces, fmt in (
         ("posterior", ("explicit", "implicit"), "-"),
-        ("hypothesis_eval", ("explicit",), "--"),
-        ("hypothesis_generation", ("implicit",), ":"),
+        (_EVAL[0], (_EVAL[1],), "--"),
+        (_GENERATION[0], (_GENERATION[1],), ":"),
     )
     for sampling in ("strong", "weak")
     for h_space in h_spaces
@@ -91,7 +87,7 @@ _ENTROPY_LINE_SPECS = tuple(
 _TOP1_MODE_ORDER = ("hypothesis_eval", "hypothesis_generation")
 _TOP1_METRICS = (
     ("top1_normalized_confidence_mean", "Norm. confidence"),
-    ("top1_support_fraction_mean", "Support fraction"),
+    ("top1_hypothesis_size_mean", "Hypothesis size"),
     ("top1_accuracy_mean", "Evidence accuracy"),
 )
 _TOP1_PAIR_METRICS = (
@@ -122,9 +118,10 @@ def _spectral_radius(A, n_iters=20):
     Used to set the FISTA step size; iterations are pure matmul so they
     vectorize across the batch dim without LAPACK calls.
     """
+    # A = MᵀM + ridge·I is entrywise nonnegative, so a fixed all-ones start overlaps the top
+    # eigenvector and keeps the step size, and hence the fitted weights, reproducible.
     B, H, _ = A.shape
-    v = torch.randn(B, H, dtype=A.dtype, device=A.device)
-    v = v / (v.norm(dim=-1, keepdim=True) + 1e-12)
+    v = torch.ones(B, H, dtype=A.dtype, device=A.device) / H ** 0.5
     for _ in range(n_iters):
         v = (A @ v.unsqueeze(-1)).squeeze(-1)
         v = v / (v.norm(dim=-1, keepdim=True) + 1e-12)
@@ -151,19 +148,19 @@ def fit_behavior_weights_batched(M_batch, p_batch, ridge=_RIDGE, n_steps=500):
     Returns:
         (B, H) weights on the simplex (rows sum to 1, or 0 if degenerate).
     """
-    M_t = torch.as_tensor(M_batch, dtype=torch.float64, device=_DEVICE)
-    p_t = torch.as_tensor(p_batch, dtype=torch.float64, device=_DEVICE)
+    M_t = torch.as_tensor(M_batch, dtype=torch.float64, device=DEVICE)
+    p_t = torch.as_tensor(p_batch, dtype=torch.float64, device=DEVICE)
     B, _D, H = M_t.shape
-    eye = torch.eye(H, dtype=torch.float64, device=_DEVICE)
+    eye = torch.eye(H, dtype=torch.float64, device=DEVICE)
     A = M_t.transpose(-1, -2) @ M_t + ridge * eye
     b_vec = (M_t.transpose(-1, -2) @ p_t.unsqueeze(-1)).squeeze(-1)
 
     lipschitz = 2.0 * _spectral_radius(A).clamp(min=1e-12)        # (B,)
     inv_L = (1.0 / lipschitz).unsqueeze(-1)                       # (B, 1)
 
-    w = torch.zeros(B, H, dtype=torch.float64, device=_DEVICE)
+    w = torch.zeros(B, H, dtype=torch.float64, device=DEVICE)
     y = w.clone()
-    t = torch.tensor(1.0, dtype=torch.float64, device=_DEVICE)
+    t = torch.tensor(1.0, dtype=torch.float64, device=DEVICE)
     for _ in range(n_steps):
         grad = 2.0 * ((A @ y.unsqueeze(-1)).squeeze(-1) - b_vec)
         w_new = (y - inv_L * grad).clamp(min=0.0)
@@ -181,18 +178,21 @@ class Top1Stats(NamedTuple):
     support_mask: np.ndarray | None
 
 
-def top1_stats(items, examples, mapper, skip_unmapped_top1: bool = False) -> Top1Stats:
-    """Top normalized hypothesis plus executable support diagnostics."""
+def top1_stats(items, examples, mapper, skip_other_top1: bool = False) -> Top1Stats:
+    """Top normalized hypothesis plus executable support diagnostics.
+
+    `top1_type` is rule/interval for an executable top-1, "other" for an answer with no
+    executable top-1, and "" for an empty (exhausted) answer. Confidence, size, and accuracy
+    are defined only for an executable top-1: an all-"other" Eval answer would otherwise
+    score confidence 1.0.
+    """
     normalized = sorted(normalized_hypothesis_items(items), key=lambda item: item[1], reverse=True)
     base = {
         "top1_label": "",
-        "top1_kind": "",
+        "top1_type": "",
         "top1_normalized_confidence": float("nan"),
-        "top1_matched": 0.0,
-        "top1_support_size": float("nan"),
-        "top1_support_fraction": float("nan"),
+        "top1_hypothesis_size": float("nan"),
         "top1_accuracy": float("nan"),
-        "top1_weight_entropy": shannon_entropy((weight for _, weight in normalized), base=2),
     }
     if not normalized:
         return Top1Stats(base, None)
@@ -200,35 +200,36 @@ def top1_stats(items, examples, mapper, skip_unmapped_top1: bool = False) -> Top
     mapped = None
     for raw_label, confidence in normalized:
         mapped = mapper(raw_label)
-        if mapped is not None or not skip_unmapped_top1:
+        if mapped is not None or not skip_other_top1:
             break
     else:
         raw_label, confidence = normalized[0]
     display_label = str(raw_label["hypothesis"]) if isinstance(raw_label, dict) else raw_label
 
-    base.update({"top1_label": display_label, "top1_normalized_confidence": confidence})
+    base.update({"top1_label": display_label, "top1_type": "other"})
     if mapped is None:
         return Top1Stats(base, None)
 
-    kind, label, vec = mapped
-    support_mask = np.asarray(vec, dtype=float) > 0.0
+    hypothesis_type, label, vec = mapped
+    # vec is a 0/1 support, or a grouped family's mean over member supports (see PromptItem):
+    # its mean is the members' mean |h| / domain, and it is 1 on an example only if every member accepts it.
+    vec = np.asarray(vec, dtype=float)
     evidence_idx = np.asarray(examples, dtype=int) - 1
     base.update({
         "top1_label": label,
-        "top1_kind": kind,
-        "top1_matched": 1.0,
-        "top1_support_size": int(support_mask.sum()),
-        "top1_support_fraction": float(support_mask.mean()),
-        "top1_accuracy": float(bool(support_mask[evidence_idx].all())),
+        "top1_type": hypothesis_type,
+        "top1_normalized_confidence": confidence,
+        "top1_hypothesis_size": float(vec.mean()),
+        "top1_accuracy": float(bool((vec[evidence_idx] == 1.0).all())),
     })
-    return Top1Stats(base, support_mask)
+    return Top1Stats(base, vec > 0.0)
 
 
 def compare_top1_stats(eval_top1: Top1Stats, gen_top1: Top1Stats) -> dict:
     """Label and support agreement for eval-vs-generation top-1 hypotheses."""
+    # Only executable top-1s (those with a support) can share a mapped label.
     same = (
-        eval_top1.row["top1_matched"] == 1.0
-        and gen_top1.row["top1_matched"] == 1.0
+        eval_top1.support_mask is not None and gen_top1.support_mask is not None
         and eval_top1.row["top1_label"] == gen_top1.row["top1_label"]
     )
     if eval_top1.support_mask is None or gen_top1.support_mask is None:
@@ -253,21 +254,21 @@ def _view_js_distance(views: dict, mode_a: tuple[str, str], mode_b: tuple[str, s
     return jensen_shannon_distance(views[mode_a].vector, views[mode_b].vector)
 
 
-def _collect_problems(experiment: Experiment, result_key):
-    """Return one fit problem per (explicit posterior condition, stimulus, prefix) with a matching eval step."""
+def _collect_problems(experiment: Experiment):
+    """Return one fit problem per (posterior condition, stimulus, prefix) with a matching eval step in the eval h_space."""
+    result_key = experiment.backend.result_key
     problems = []
     for task, factors in experiment.tasks.items():
         if not {"posterior", "hypothesis_eval"}.issubset(factors.eval_modes):
             continue
         for domain in factors.domains:
-            ctx = task_context(experiment, task, domain)
+            ctx = build_task_context(task, domain)
             for sampling in factors.samplings:
-                post_traj = load_condition_trajectory(ExperimentCondition(task, "posterior", "explicit", sampling, domain), result_key)
-                eval_traj = load_condition_trajectory(ExperimentCondition(task, "hypothesis_eval", "explicit", sampling, domain), result_key)
+                post_traj = load_condition_trajectory(ExperimentCondition(task, "posterior", _EVAL[1], sampling, domain), result_key)
+                eval_traj = load_condition_trajectory(ExperimentCondition(task, *_EVAL, sampling, domain), result_key)
                 if not post_traj or not eval_traj:
                     continue
 
-                condition_key = f"{task}/d{domain}/explicit_{sampling}"
                 for stimulus_name, stimulus in ctx.task.stimulus_map.items():
                     eval_by_n = trajectory_steps(eval_traj, stimulus_name)
                     for n, p_step in trajectory_steps(post_traj, stimulus_name).items():
@@ -280,15 +281,13 @@ def _collect_problems(experiment: Experiment, result_key):
                         problems.append({
                             "M": M,
                             "p": np.asarray(p_step, dtype=np.float64),
-                            "labels": labels,
                             "w_eval": w_eval / w_eval_sum if w_eval_sum > 0 else w_eval,
                             "row": {
                                 "task": task, "domain": domain,
-                                "h_space": "explicit", "sampling": sampling,
+                                "h_space": _EVAL[1], "sampling": sampling,
                                 "stimulus": stimulus_name, "stimulus_kind": stimulus.kind,
                                 "n_examples": n, "n_labels": len(labels),
                             },
-                            "condition_key": condition_key,
                         })
     return problems
 
@@ -306,13 +305,13 @@ def _solve_problem_group(probs):
     return [W_pad[slot, :prob["M"].shape[1]] for slot, prob in enumerate(probs)]
 
 
-def run_hypothesis_fit(experiment: Experiment, output_dir: str, result_key: str, figure_dir: str):
+def run_hypothesis_fit(experiment: Experiment, analysis_dir: str, figure_dir: str):
     """Fit explicit-posterior to eval label space; compare against eval self-report.
 
     All (condition, stimulus, prefix) sub-problems are collected, then dispatched
     to the GPU in one batched FISTA pass per domain.
     """
-    problems = _collect_problems(experiment, result_key)
+    problems = _collect_problems(experiment)
     if not problems:
         print("  Hypothesis fit: no overlapping posterior+eval data")
         return pd.DataFrame()
@@ -322,21 +321,13 @@ def run_hypothesis_fit(experiment: Experiment, output_dir: str, result_key: str,
         by_domain.setdefault(prob["M"].shape[0], []).append(prob)
 
     rows = []
-    weights_dump = {}
     for group in by_domain.values():
         for prob, w_fit in zip(group, _solve_problem_group(group)):
             rows.append({**prob["row"], **compare_weights(w_fit, prob["w_eval"])})
-            weights_dump.setdefault(prob["condition_key"], {}).setdefault(prob["row"]["stimulus"], []).append({
-                "n_examples": prob["row"]["n_examples"],
-                "labels": prob["labels"],
-                "w_fit": w_fit.tolist(),
-                "w_eval": prob["w_eval"].tolist(),
-            })
 
-    df = save_csv(rows, output_dir, "hypothesis_fit_metrics.csv")
-    save_json(os.path.join(output_dir, "hypothesis_fit_weights.json"), weights_dump)
+    df = save_csv(rows, analysis_dir, "hypothesis_fit_metrics.csv")
     n_valid = int(df["js_distance"].notna().sum())
-    print(f"  hypothesis_fit: {n_valid}/{len(rows)} valid on {_DEVICE}; "
+    print(f"  hypothesis_fit: {n_valid}/{len(rows)} valid on {DEVICE}; "
           f"mean JS distance(fit, eval) = {df['js_distance'].mean():.3f}, "
           f"mean top-{_TOP_K} overlap = {df['topk_overlap'].mean():.3f}")
     return df
@@ -344,7 +335,7 @@ def run_hypothesis_fit(experiment: Experiment, output_dir: str, result_key: str,
 
 def _ordered_samplings(df: pd.DataFrame) -> list[str]:
     present = set(df["sampling"].unique())
-    return [s for s in _SAMPLING_ORDER if s in present]
+    return [s for s in SAMPLING_BLOCKS if s in present]
 
 
 def summarize_hypothesis_compare(metric_rows, entropy_rows, top1_rows, pair_rows) -> tuple[pd.DataFrame, ...]:
@@ -363,25 +354,30 @@ def summarize_hypothesis_compare(metric_rows, entropy_rows, top1_rows, pair_rows
             .groupby(["task", "domain", "n_examples", "h_space", "sampling", "eval_mode"], dropna=False)
             .agg(
                 entropy_bits_mean=("entropy_bits", "mean"),
-                weight_entropy_bits_mean=("weight_entropy_bits", "mean"),
-                coverage_mean=("coverage", "mean"),
-                matched_mass_mean=("matched_mass", "mean"),
-                unmatched_mass_mean=("unmatched_mass", "mean"),
+                other_mass_mean=("other_mass", "mean"),
+                rule_mass_mean=("rule_mass", "mean"),
+                interval_mass_mean=("interval_mass", "mean"),
                 n_rows=("entropy_bits", "size"),
             )
             .reset_index()
         )
     if not top1_df.empty:
-        top1_df = top1_df.assign(top1_rule_proportion=top1_df["top1_kind"].eq("rule").astype(float))
+        # Type shares count every answered prefix ("other" included); exhausted answers are no response.
+        answered = top1_df["top1_type"].ne("")
+        top1_df = top1_df.assign(**{
+            f"top1_{typ}_preference": top1_df["top1_type"].eq(typ).astype(float).where(answered)
+            for typ in HYPOTHESIS_TYPES
+        })
         top1_summary = (
             top1_df
             .groupby(["domain", "n_examples", "sampling", "eval_mode"], dropna=False)
             .agg(
                 top1_normalized_confidence_mean=("top1_normalized_confidence", "mean"),
-                top1_support_fraction_mean=("top1_support_fraction", "mean"),
+                top1_hypothesis_size_mean=("top1_hypothesis_size", "mean"),
                 top1_accuracy_mean=("top1_accuracy", "mean"),
-                top1_matched_mean=("top1_matched", "mean"),
-                top1_rule_proportion_mean=("top1_rule_proportion", "mean"),
+                top1_rule_preference_mean=("top1_rule_preference", "mean"),
+                top1_interval_preference_mean=("top1_interval_preference", "mean"),
+                top1_other_preference_mean=("top1_other_preference", "mean"),
                 n_rows=("top1_accuracy", "size"),
             )
             .reset_index()
@@ -415,14 +411,14 @@ def _plot_eval_generation_trajectory(metric_df: pd.DataFrame, output_path: str) 
     plot_df = metric_df[metric_df["sampling"].isin(["strong", "weak"])].dropna(subset=["eval_vs_generation_js_distance"])
     if plot_df.empty:
         return
-    plot_df = plot_df.assign(task_domain=plot_df["task"] + "/d" + plot_df["domain"].astype(str))
+    plot_df = with_task_domain(plot_df)
     series = []
     for sampling in ("strong", "weak"):
         sub = plot_df[plot_df["sampling"] == sampling]
         if sub.empty:
             continue
         xs, ys, sems = task_domain_series(sub, "eval_vs_generation_js_distance")
-        series.append({"x": xs, "y": ys, "y_err": sems, "label": sampling, "color": PROMPT_PALETTE[f"{sampling} explicit"]})
+        series.append({"x": xs, "y": ys, "y_err": sems, "label": sampling, "color": PROMPT_PALETTE[f"explicit_{sampling}"]})
     if series:
         plot_trajectory_sem(
             series, output_path,
@@ -437,13 +433,13 @@ def _plot_entropy_trajectories(summary_df: pd.DataFrame, output_dir: str) -> Non
     plot_df = summary_df.dropna(subset=["eval_mode", "sampling", "h_space"])
     if plot_df.empty:
         return
-    plot_df = plot_df.assign(task_domain=plot_df["task"] + "/d" + plot_df["domain"].astype(str))
+    plot_df = with_task_domain(plot_df)
     xticks = tuple(sorted(int(n) for n in plot_df["n_examples"].dropna().unique()))
     for metric, filename, ylabel in _ENTROPY_TRAJECTORY_SPECS:
         series = []
         for eval_mode, sampling, h_space, fmt in _ENTROPY_LINE_SPECS:
-            # Posterior projection is direct, so its matched mass is always 1.
-            if metric == "matched_mass_mean" and eval_mode == "posterior":
+            # Posterior projection is direct, so its other mass is always 0.
+            if metric == "other_mass_mean" and eval_mode == "posterior":
                 continue
             sub = plot_df[
                 (plot_df["eval_mode"] == eval_mode) & (plot_df["sampling"] == sampling) & (plot_df["h_space"] == h_space)
@@ -451,11 +447,11 @@ def _plot_entropy_trajectories(summary_df: pd.DataFrame, output_dir: str) -> Non
             if sub.empty:
                 continue
             xs, ys, sems = task_domain_series(sub, metric)
-            frame = f" {h_space}" if eval_mode == "posterior" else ""
+            h_space_label = f" {h_space}" if eval_mode == "posterior" else ""
             series.append({
                 "x": xs, "y": ys, "y_err": sems,
-                "label": f"{EVAL_MODE_LABELS[eval_mode]} {sampling}{frame}",
-                "color": PROMPT_PALETTE[f"{sampling} {h_space}"],
+                "label": f"{EVAL_MODE_LABELS[eval_mode]} {sampling}{h_space_label}",
+                "color": PROMPT_PALETTE[f"{h_space}_{sampling}"],
                 "fmt": fmt,
             })
         if series:
@@ -525,19 +521,20 @@ def _plot_top1_pair_metric_panels(summary_df: pd.DataFrame, output_path: str, re
     save_fig(fig, output_path)
 
 
-def run_hypothesis_compare(experiment: Experiment, output_dir: str, result_key: str, figure_dir: str):
+def run_hypothesis_compare(experiment: Experiment, analysis_dir: str, figure_dir: str):
     """Compare projected posterior, eval, and generation predictions per prefix.
 
-    JS-distance pairs are formed within matching prompt frames where possible:
+    JS-distance pairs are formed within matching h_spaces where possible:
       - posterior_vs_eval:        explicit posterior vs explicit eval
       - posterior_vs_generation:  implicit posterior vs implicit generation
-      - eval_vs_generation:       explicit eval vs implicit generation (cross-frame, unavoidable)
+      - eval_vs_generation:       explicit eval vs implicit generation (cross-h_space, unavoidable)
     """
+    result_key = experiment.backend.result_key
     metric_rows, entropy_rows, top1_rows, pair_rows = [], [], [], []
 
     for task, factors in experiment.tasks.items():
         for domain in factors.domains:
-            ctx = task_context(experiment, task, domain)
+            ctx = build_task_context(task, domain)
             generation_library = (
                 load_hypothesis_library(domain) if "hypothesis_generation" in factors.eval_modes else None
             )
@@ -546,7 +543,11 @@ def run_hypothesis_compare(experiment: Experiment, output_dir: str, result_key: 
                 def trajectory(eval_mode, h_space):
                     if eval_mode not in factors.eval_modes:
                         return None
-                    return load_condition_trajectory(ExperimentCondition(task, eval_mode, h_space, sampling, domain), result_key)
+                    # Posterior views here feed only entropy and JS distance, so text-trial results are smoothed.
+                    return load_condition_trajectory(
+                        ExperimentCondition(task, eval_mode, h_space, sampling, domain), result_key,
+                        log_space=eval_mode == "posterior",
+                    )
 
                 eval_traj = trajectory(*_EVAL)
                 gen_traj = trajectory(*_GENERATION)
@@ -568,34 +569,23 @@ def run_hypothesis_compare(experiment: Experiment, output_dir: str, result_key: 
                             "sampling": sampling, "n_examples": n_examples,
                         }
 
-                        views, weight_entropies = {}, {}
+                        views = {}
                         for h, steps in post_by_n.items():
                             if n_examples in steps:
-                                views[("posterior", h)] = project_posterior(steps[n_examples])
+                                views[("posterior", h)] = project_result("posterior", steps[n_examples], examples, ctx)
 
                         eval_top1 = gen_top1 = None
                         if n_examples in eval_by_n:
-                            eval_norm = normalize_hypothesis_weight_dict(eval_by_n[n_examples])
-                            lookup = eval_lookup(ctx, examples)
-                            views[_EVAL] = project_hypothesis_eval(eval_norm, examples, ctx)
-                            weight_entropies["hypothesis_eval"] = shannon_entropy(eval_norm.values(), base=2)
-                            eval_top1 = top1_stats(
-                                eval_norm.items(), examples,
-                                lambda label: map_eval_label(label, lookup),
-                                skip_unmapped_top1=True,
-                            )
+                            evaluated = eval_by_n[n_examples]
+                            views[_EVAL] = project_result(_EVAL[0], evaluated, examples, ctx)
+                            eval_top1 = top1_stats(evaluated.items(), examples, eval_mapper(ctx, examples), skip_other_top1=True)
                             top1_rows.append({**row_base, "eval_mode": "hypothesis_eval", **eval_top1.row})
 
                         if n_examples in gen_by_n:
                             gen_norm = normalize_structured_generation_confidence(gen_by_n[n_examples])
-                            views[_GENERATION] = project_structured_hypothesis_generation(gen_norm, generation_library)
-                            weight_entropies["hypothesis_generation"] = shannon_entropy(
-                                (item["confidence"] for item in gen_norm), base=2,
-                            )
+                            views[_GENERATION] = project_result(_GENERATION[0], gen_by_n[n_examples], examples, ctx)
                             gen_top1 = top1_stats(
-                                ((item, item["confidence"]) for item in gen_norm),
-                                examples,
-                                lambda item: map_structured_generation_item(item, generation_library),
+                                ((item, item["confidence"]) for item in gen_norm), examples, generation_mapper(generation_library),
                             )
                             top1_rows.append({**row_base, "eval_mode": "hypothesis_generation", **gen_top1.row})
 
@@ -606,10 +596,10 @@ def run_hypothesis_compare(experiment: Experiment, output_dir: str, result_key: 
                             entropy_rows.append({
                                 **row_base, "eval_mode": eval_mode, "h_space": h_space,
                                 "entropy_bits": shannon_entropy(view.vector, base=2),
-                                "weight_entropy_bits": weight_entropies.get(eval_mode, float("nan")),
-                                "coverage": view.coverage,
-                                "matched_mass": view.matched_mass,
-                                "unmatched_mass": view.unmatched_mass,
+                                "other_mass": view.other_mass,
+                                "rule_mass": view.rule_mass,
+                                "interval_mass": view.interval_mass,
+                                **{f"rule_share_top{k}": view.rule_share(k) for k in RULE_SHARE_TOP_K},
                             })
 
                         for h_space in factors.h_spaces:
@@ -623,17 +613,17 @@ def run_hypothesis_compare(experiment: Experiment, output_dir: str, result_key: 
                                 "eval_vs_generation_js_distance": _view_js_distance(views, _EVAL, _GENERATION),
                             })
 
-    metric_df = save_csv(metric_rows, output_dir, "hypothesis_compare_js_distance_metrics.csv")
-    entropy_df = save_csv(entropy_rows, output_dir, "hypothesis_compare_entropy_metrics.csv")
-    top1_df = save_csv(top1_rows, output_dir, "hypothesis_compare_top1_metrics.csv")
-    save_csv(pair_rows, output_dir, "hypothesis_compare_top1_pair_metrics.csv")
+    metric_df = save_csv(metric_rows, analysis_dir, "hypothesis_compare_js_distance_metrics.csv")
+    entropy_df = save_csv(entropy_rows, analysis_dir, "hypothesis_compare_entropy_metrics.csv")
+    top1_df = save_csv(top1_rows, analysis_dir, "hypothesis_compare_top1_metrics.csv")
+    save_csv(pair_rows, analysis_dir, "hypothesis_compare_top1_pair_metrics.csv")
     metric_summary, entropy_summary, top1_summary, pair_summary = summarize_hypothesis_compare(
         metric_rows, entropy_rows, top1_rows, pair_rows,
     )
-    save_csv(metric_summary, output_dir, "hypothesis_compare_js_distance_summary.csv")
-    save_csv(entropy_summary, output_dir, "hypothesis_compare_entropy_summary.csv")
-    save_csv(top1_summary, output_dir, "hypothesis_compare_top1_summary.csv")
-    save_csv(pair_summary, output_dir, "hypothesis_compare_top1_pair_summary.csv")
+    save_csv(metric_summary, analysis_dir, "hypothesis_compare_js_distance_summary.csv")
+    save_csv(entropy_summary, analysis_dir, "hypothesis_compare_entropy_summary.csv")
+    save_csv(top1_summary, analysis_dir, "hypothesis_compare_top1_summary.csv")
+    save_csv(pair_summary, analysis_dir, "hypothesis_compare_top1_pair_summary.csv")
 
     _plot_js_distance_trajectories(metric_df, figure_dir)
     _plot_eval_generation_trajectory(metric_df, os.path.join(figure_dir, "hypothesis_eval_vs_generation_js_distance.png"))

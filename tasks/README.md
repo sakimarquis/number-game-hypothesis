@@ -9,23 +9,23 @@ The number game asks which numbers belong to an unknown concept after seeing acc
 | `Tenenbaum99` | 8 hand-written sets | Tenenbaum (1999). |
 | `Bigelow16` | 255 sets | Bigelow & Piantadosi (2016) human data. |
 
-A **stimulus set** is a full example sequence, such as `D={16,8,2,64}`. A **stimulus** is one shown prefix: `[16]`, `[16,8]`, `[16,8,2]`, or `[16,8,2,64]`. Scoring stops at `SCORING.max_examples`; identical prefixes within a condition are scored once and reused. `dataset` refers to the raw files under `dataset/`, not to an evaluation mode.
+A **stimulus set** (`StimulusSet`; the `stimulus` column in analysis tables) is a full example sequence, such as `D={16,8,2,64}`. A **prefix** is one shown evidence sequence: `[16]`, `[16,8]`, `[16,8,2]`, or `[16,8,2,64]`. Scoring stops at `SCORING.max_examples`; identical prefixes within a condition are scored once and reused. `dataset` refers to the raw files under `dataset/`, not to an evaluation mode.
 
-An `ExperimentCondition` fixes task, domain, evaluation mode, `h_space`, and sampling frame; the selected model determines its result root. The domain is `1..domain`. Conditions sharing task, domain, `h_space`, and sampling form a prompt group and share one result directory. Enabled combinations and the scoring prefix horizon live in [configs/number_game.yml](../configs/number_game.yml). Human reference judgments are native to domain 100.
+An `ExperimentCondition` fixes task, domain, evaluation mode, `h_space`, and `sampling`; the selected model determines its result root. The domain is `1..domain`. Conditions sharing task, domain, `h_space`, and sampling form a prompt group (`ExperimentCondition.prompt_group`) and share one result directory named by the prompt `{h_space}_{sampling}` (`ExperimentCondition.prompt`), which figures also use as their prompt label. Enabled combinations and the scoring prefix horizon live in [configs/number_game.yml](../configs/number_game.yml). Human reference judgments are native to domain 100.
 
-## Prompt framing
+## `h_space` and `sampling`
 
-`implicit` gives the domain, examples, and sampling story. `explicit` also describes the task/domain rule labels, four prefix-dependent intervals, and an `other` option. This changes the stated hypothesis space, not the observed examples.
+`implicit` gives the domain, examples, and sampling text. `explicit` also describes the task/domain rule labels, four prefix-dependent intervals, and an `other` option. This changes the stated hypothesis space, not the observed examples.
 
-| Sampling | Story given to the model |
+| Sampling | Text given to the model |
 | --- | --- |
-| `default` | No sampling story. |
+| `default` | No sampling text. |
 | `strong` | Positives were sampled uniformly from accepted numbers. |
 | `weak` | The examples are positives, without uniform sampling. |
 | `pedagogical` | A teacher chose informative examples. |
 | `adversarial` | The examples may be misleading. |
 
-The task's `h_spaces` sweep applies only to `posterior`. `hypothesis_eval` is always explicit; `hypothesis_generation` is always implicit.
+The task's `h_spaces` sweep applies only to `posterior`. `hypothesis_eval` is always explicit; `hypothesis_generation` is always implicit (`HYPOTHESIS_H_SPACE` in [configs/settings.py](../configs/settings.py)). The task also fixes its rule space (`TASK_RULE_SPACES` in [stimuli.py](stimuli.py)): Tenenbaum uses all bases untransformed; Bigelow composes its primordial bases with every registered transform.
 
 ## Evaluation modes
 
@@ -50,6 +50,8 @@ The model proposes up to `HYPOTHESIS_GENERATION.n_hypotheses` rules with confide
 ```json
 [{"hypothesis": "multiples of 8", "confidence": 0.6}, {"hypothesis": "powers of 2", "confidence": 0.3}]
 ```
+
+A hypothesis-mode prefix whose answer is still unparseable after `SCORING.max_retries` re-asks stores `{}` (eval) or `[]` (generation). Such caches stay reusable; analysis counts those prefixes as exhausted.
 
 There is no supplied candidate list. Later analysis structures precise descriptions into executable predicates over the domain; it does not match them against the hypothesis-eval candidate list. See the [analysis workflow](../analysis/README.md#hypothesis-structuring).
 

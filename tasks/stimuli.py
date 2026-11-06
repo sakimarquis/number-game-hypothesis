@@ -41,9 +41,12 @@ def classify_bigelow_kind(examples: list[int]) -> str:
     return "other"
 
 
-# Bigelow & Piantadosi 2016 transforms (applied to primordial bases), derived
-# from the registry's registration order so the catalog cannot drift from it.
-BIGELOW16_TRANSFORMS: list[str] = list(default_registry(preset="bigelow").transforms)
+# Per-task rule space: registry base preset and the transforms composed onto its bases.
+# Bigelow16 uses every registered transform (Bigelow & Piantadosi 2016 primordials).
+TASK_RULE_SPACES: dict[str, tuple[str, list[str]]] = {
+    "Tenenbaum99": ("all", ["identity"]),
+    "Bigelow16": ("bigelow", list(default_registry(preset="bigelow").transforms)),
+}
 
 
 @dataclass
@@ -52,15 +55,16 @@ class StimulusSet:
     examples: list[int]
     kind: str  # "single" | "rule" | "similarity" | "other"
 
+    def prefix(self, n: int) -> "StimulusSet":
+        """The same stimulus set truncated to its first n examples."""
+        return StimulusSet(self.name, self.examples[:n], self.kind)
+
 
 @dataclass
 class TaskData:
     name: str                     # "Tenenbaum99" | "Bigelow16"
     stimuli: list[StimulusSet]
-    transforms: list[str]
     human_preds: dict | None = None  # {stimulus_name: np.ndarray} if available
-    base_preset: str = "all"      # "all" (Tenenbaum99) | "bigelow" (B&P primordials)
-    featured_stimuli: list[str] | None = None  # per-condition panel/decomp subset when |stimuli|>8
 
     @property
     def stimulus_map(self) -> dict[str, StimulusSet]:
@@ -82,51 +86,37 @@ TENENBAUM99_STIMULI: list[StimulusSet] = [
 ]
 
 
-HUMAN_NATIVE_DOMAIN = 100  # Bigelow16 human data covers targets 1..100
+BASE_DOMAIN = 100  # the tasks' original domain 1..100: human data cover it, and extended domains should preserve its shape
 TENENBAUM99_DATA_DIR = os.path.join(PROJECT_ROOT, "dataset", "tenenbaum99_data")
-
-
-@lru_cache(maxsize=1)
-def _load_tenenbaum99_cached() -> tuple[tuple[frozenset, tuple[float, ...]], ...]:
-    """Parse Tenenbaum99 CSVs once, keyed by example set.
-
-    Each CSV is `target, p_yes` on ~30 sparsely sampled targets. Returns
-    tuples of (example_set, preds_tuple) with NaN at unmeasured targets.
-    Filenames encode the stimulus set either as a bare int (`16.csv`) or a
-    bracketed list (`[16,8,2,64].csv`); matching is by set, so order does not matter.
-    """
-    result = []
-    for fname in sorted(os.listdir(TENENBAUM99_DATA_DIR)):
-        if not fname.endswith(".csv"):
-            continue
-        stem = fname[:-4].strip("[]")
-        ex_set = frozenset(int(x) for x in stem.split(","))
-        preds = np.full(HUMAN_NATIVE_DOMAIN, np.nan)
-        with open(os.path.join(TENENBAUM99_DATA_DIR, fname), newline="") as f:
-            for row in csv.reader(f):
-                if not row or not row[0].strip():
-                    continue
-                t, p = int(row[0]), float(row[1])
-                if 1 <= t <= HUMAN_NATIVE_DOMAIN:
-                    preds[t - 1] = p
-        result.append((ex_set, tuple(preds.tolist())))
-    return tuple(result)
 
 
 def load_tenenbaum99() -> dict[str, np.ndarray]:
     """Load Tenenbaum (1999) sparse human ratings keyed by stimulus name.
 
-    Values are length-100 arrays with NaN at unmeasured targets (~30 measured
-    per stimulus). CSVs are matched to TENENBAUM99_STIMULI by example set (order-
-    independent), since stimulus order differs between filename and stimulus.
+    Each CSV is `target, p_yes` on ~30 sparsely sampled targets; values are
+    length-100 arrays with NaN at unmeasured targets. Filenames encode the
+    stimulus set either as a bare int (`16.csv`) or a bracketed list
+    (`[16,8,2,64].csv`); matching is by set, since stimulus order differs
+    between filename and stimulus.
     """
-    cached = dict(_load_tenenbaum99_cached())
-    human_preds = {}
-    for stimulus in TENENBAUM99_STIMULI:
-        preds = cached.get(frozenset(stimulus.examples))
-        if preds is not None:
-            human_preds[stimulus.name] = np.array(preds)
-    return human_preds
+    by_example_set = {}
+    for fname in sorted(os.listdir(TENENBAUM99_DATA_DIR)):
+        if not fname.endswith(".csv"):
+            continue
+        preds = np.full(BASE_DOMAIN, np.nan)
+        with open(os.path.join(TENENBAUM99_DATA_DIR, fname), newline="") as f:
+            for row in csv.reader(f):
+                if not row or not row[0].strip():
+                    continue
+                t, p = int(row[0]), float(row[1])
+                if 1 <= t <= BASE_DOMAIN:
+                    preds[t - 1] = p
+        by_example_set[frozenset(int(x) for x in fname[:-4].strip("[]").split(","))] = preds
+    return {
+        stimulus.name: by_example_set[frozenset(stimulus.examples)]
+        for stimulus in TENENBAUM99_STIMULI
+        if frozenset(stimulus.examples) in by_example_set
+    }
 
 
 def bigelow_stimulus(set_str: str) -> tuple[str, list[int]]:
@@ -135,68 +125,37 @@ def bigelow_stimulus(set_str: str) -> tuple[str, list[int]]:
     return "D={" + ",".join(str(x) for x in examples) + "}", examples
 
 
-@lru_cache(maxsize=None)
-def _load_bigelow16_cached(csv_path: str) -> tuple[tuple[tuple[str, tuple[int, ...], str], ...], dict[str, np.ndarray]]:
-    """Parse Bigelow16 once, returning immutable stimulus specs + baseline arrays."""
-    df = pd.read_csv(csv_path)
-    agg = df.groupby(["set", "target"])["rating"].mean().reset_index()
-    agg.rename(columns={"rating": "p_yes"}, inplace=True)
-
-    stimulus_specs = []
-    human_preds = {}
-    for set_str in sorted(df["set"].unique()):
-        name, examples = bigelow_stimulus(set_str)
-        stimulus_specs.append((name, tuple(examples), classify_bigelow_kind(examples)))
-
-        preds = np.zeros(HUMAN_NATIVE_DOMAIN)
-        subset = agg[agg["set"] == set_str]
-        for _, row in subset.iterrows():
-            t = int(row["target"])
-            if 1 <= t <= HUMAN_NATIVE_DOMAIN:
-                preds[t - 1] = row["p_yes"]
-        human_preds[name] = preds
-
-    return tuple(stimulus_specs), human_preds
-
-
 def load_bigelow16() -> tuple[list[StimulusSet], dict[str, np.ndarray]]:
     """Load Bigelow & Piantadosi (2016) stimuli and human baselines.
 
-    Human data covers targets 1..100 (native study resolution). Arrays are
-    always length 100; callers must disable human comparison when domain != 100.
-
-    Returns:
-        stimuli: 255 StimulusSet objects with kind classified by `classify_bigelow_kind`
-            (single/similarity/rule/other)
-        human_preds: {stimulus_name: np.array of shape (100,)} with p(yes)
+    Human data covers targets 1..100 (native study resolution), so arrays are
+    always length 100; build_task_context drops them outside that domain.
+    Stimulus kinds come from `classify_bigelow_kind`.
     """
-    csv_path = os.path.join(PROJECT_ROOT, "dataset", "numbergame_data.csv")
-    specs, cached_preds = _load_bigelow16_cached(os.path.abspath(csv_path))
-    stimuli = [StimulusSet(name, list(examples), kind) for name, examples, kind in specs]
-    human_preds = {name: preds.copy() for name, preds in cached_preds.items()}
+    df = pd.read_csv(os.path.join(PROJECT_ROOT, "dataset", "numbergame_data.csv"))
+    agg = df.groupby(["set", "target"])["rating"].mean().reset_index()
+
+    stimuli, human_preds = [], {}
+    for set_str in sorted(df["set"].unique()):
+        name, examples = bigelow_stimulus(set_str)
+        stimuli.append(StimulusSet(name, examples, classify_bigelow_kind(examples)))
+        preds = np.zeros(BASE_DOMAIN)
+        for _, row in agg[agg["set"] == set_str].iterrows():
+            t = int(row["target"])
+            if 1 <= t <= BASE_DOMAIN:
+                preds[t - 1] = row["rating"]
+        human_preds[name] = preds
     return stimuli, human_preds
 
 
-def make_task(name: str, featured_stimuli: list[str] | None = None) -> TaskData:
-    """Build task config. Domain-independent — returns all stimuli for the task."""
+@lru_cache(maxsize=None)
+def make_task(name: str) -> TaskData:
+    """Build task data once per process. Domain-independent — returns all stimuli for the task."""
     if name == "Tenenbaum99":
-        return TaskData(
-            name="Tenenbaum99",
-            stimuli=list(TENENBAUM99_STIMULI),
-            transforms=["identity"],
-            human_preds=load_tenenbaum99(),
-            featured_stimuli=featured_stimuli,
-        )
+        return TaskData(name="Tenenbaum99", stimuli=list(TENENBAUM99_STIMULI), human_preds=load_tenenbaum99())
     if name == "Bigelow16":
         stimuli, human_preds = load_bigelow16()
-        return TaskData(
-            name="Bigelow16",
-            stimuli=stimuli,
-            transforms=BIGELOW16_TRANSFORMS,
-            human_preds=human_preds,
-            base_preset="bigelow",
-            featured_stimuli=featured_stimuli,
-        )
+        return TaskData(name="Bigelow16", stimuli=stimuli, human_preds=human_preds)
     raise ValueError(f"Unknown task: {name!r}")
 
 
@@ -214,18 +173,17 @@ class TaskContext:
 
 
 @lru_cache(maxsize=None)
-def build_task_context(task: str, domain: int, natural_intervals: bool,
-                       featured_stimuli: tuple[str, ...] | None = None) -> TaskContext:
+def build_task_context(task: str, domain: int) -> TaskContext:
     """Build domain-valid task data and rules without allocating model tensors."""
-    task_data = make_task(task, featured_stimuli=list(featured_stimuli) if featured_stimuli is not None else None)
+    task_data = make_task(task)
     bad = [c.name for c in task_data.stimuli if max(c.examples) > domain]
     if bad:
         raise ValueError(
             f"{task} domain={domain}: stimuli {bad} have examples outside 1..{domain}. "
             f"Remove this domain or use domain >= {max(max(c.examples) for c in task_data.stimuli)}."
         )
-    if task_data.human_preds and domain != HUMAN_NATIVE_DOMAIN:
+    if task_data.human_preds and domain != BASE_DOMAIN:
         task_data = replace(task_data, human_preds=None)
-    registry = default_registry(domain, preset=task_data.base_preset)
-    rules, intervals, rule_families = registry.build(task_data.transforms, natural_intervals=natural_intervals)
+    preset, transforms = TASK_RULE_SPACES[task]
+    rules, intervals, rule_families = default_registry(domain, preset=preset).build(transforms)
     return TaskContext(task_data, domain, rules, intervals, rule_families)

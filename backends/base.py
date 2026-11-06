@@ -1,44 +1,32 @@
 """Abstract backend interface."""
 
-import asyncio
-import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import numpy as np
 
-from configs.settings import GenerationSamplingConfig
+from configs.settings import GREEDY, GenerationSamplingConfig
+
+# Surface forms of the binary answer labels; the first of each is the canonical choice.
+BINARY_VARIANTS = {"yes": ("Yes", "yes", "YES"), "no": ("No", "no", "NO")}
 
 
 @dataclass
 class GenerateResult:
-    """Return value from Backend.generate()."""
+    """Return value from Backend.generate().
+
+    `thinking_tokens` is None when the backend cannot count them. `forced_close`
+    means thinking reached its budget and was closed by our code; `truncated`
+    means the answer stopped at its output cap.
+    """
     text: str
     thinking_text: str = ""
+    thinking_tokens: int | None = None
+    forced_close: bool = False
+    truncated: bool = False
 
-
-def binary_token_label(token: str) -> str | None:
-    text = token.strip()
-    while text.startswith(("Ġ", "▁")):
-        text = text[1:].lstrip()
-    label = text.strip().casefold()
-    return label if label in {"yes", "no"} else None
-
-
-def score_topk_pairs(pairs) -> tuple[float, bool]:
-    """Exp-sum p(yes) over (token_str, logprob) pairs; True when no pair is binary."""
-    yes = 0.0
-    no = 0.0
-    for token, logprob in pairs:
-        label = binary_token_label(token)
-        if label == "yes":
-            yes += math.exp(float(logprob))
-        elif label == "no":
-            no += math.exp(float(logprob))
-    total = yes + no
-    if total == 0.0:
-        return 0.5, True
-    return yes / total, False
+    def thinking_record(self) -> dict:
+        return {"thinking_tokens": self.thinking_tokens, "forced_close": self.forced_close, "truncated": self.truncated}
 
 
 def assemble_binary_scores(results) -> tuple[np.ndarray, int]:
@@ -49,33 +37,17 @@ def assemble_binary_scores(results) -> tuple[np.ndarray, int]:
     )
 
 
-async def warm_cache_then_gather(score_one, messages_list) -> tuple[np.ndarray, int]:
-    """Await the first scoring call alone so its shared preamble warms the
-    provider prompt cache, then burst the rest concurrently — subsequent calls
-    hit cache instead of every first-wave request missing simultaneously."""
-    if not messages_list:
-        return np.empty(0, dtype=np.float32), 0
-    first = await score_one(messages_list[0])
-    rest = await asyncio.gather(*[score_one(m) for m in messages_list[1:]])
-    return assemble_binary_scores([first, *rest])
-
-
 class Backend(ABC):
     """Base class for LLM backends.
 
-    All public generation and scoring methods are async. Subclasses implement
-    generate(); logprob backends also implement score_binary() and the
-    shared-prefix hooks.
+    All public generation and scoring methods are async and take a list of
+    prompts. Subclasses implement generate(); logprob backends also implement
+    score_binary() and the shared-prefix hooks.
     """
-    # True = caller chunks requests by `batch_size` (HF GPU forward passes).
-    # False = backend owns request concurrency internally.
-    caller_batched = False
-    batch_size: int = 1
     supports_per_target_thinking = True
-    supports_logprobs = True
     supports_json_schema = False
     enable_thinking = False
-    is_reasoning = False
+    reasoning = False
     # Gemini Batch API execution: requests are submitted as condition-wide jobs.
     batch_api_enabled = False
     # Online text-trial requests are checkpointed and failed keys retried when > 0.
@@ -102,42 +74,18 @@ class Backend(ABC):
     def _effective_thinking_budget(self, thinking_budget: int | None) -> int:
         if thinking_budget is not None:
             return thinking_budget
-        if self.enable_thinking or self.is_reasoning:
+        if self.enable_thinking or self.reasoning:
             raise ValueError("thinking_budget is required for thinking/reasoning calls.")
         return 0
 
-    @staticmethod
-    def _continued_messages(
-        thinking_messages: list[dict],
-        thinking_message: dict,
-        messages_list: list[list[dict]],
-    ) -> list[list[dict]]:
-        return [
-            [*thinking_messages, thinking_message, messages[-1]]
-            for messages in messages_list
-        ]
-
     @abstractmethod
-    async def generate(self, messages: list[dict], max_tokens: int = 1,
-                       temperature: float = 0.0, *, thinking_budget: int | None = None,
-                       generation_config: GenerationSamplingConfig | None = None,
-                       response_json_schema: dict | None = None) -> GenerateResult:
+    async def generate(self, messages_list: list[list[dict]], max_tokens: int = 1,
+                       *, thinking_budget: int | None = None,
+                       generation_config: GenerationSamplingConfig = GREEDY,
+                       response_json_schema: dict | None = None,
+                       batch_key: str | None = None) -> list[GenerateResult]:
+        """Generate one result per prompt; `batch_key` names a Gemini Batch job and is ignored elsewhere."""
         ...
-
-    async def generate_batch(self, messages_list: list[list[dict]], max_tokens: int = 1,
-                             temperature: float = 0.0, *, thinking_budget: int | None = None,
-                             generation_config: GenerationSamplingConfig | None = None,
-                             response_json_schema: dict | None = None,
-                             batch_key: str | None = None) -> list[GenerateResult]:
-        """Generate all prompts; the default runs concurrent generate() calls."""
-        return await asyncio.gather(*[
-            self.generate(
-                messages, max_tokens=max_tokens, temperature=temperature,
-                thinking_budget=thinking_budget, generation_config=generation_config,
-                response_json_schema=response_json_schema,
-            )
-            for messages in messages_list
-        ])
 
     async def score_binary(self, messages_list: list[list[dict]],
                            *, thinking_budget: int | None = None) -> tuple[np.ndarray, int]:
@@ -150,14 +98,19 @@ class Backend(ABC):
         messages_list: list[list[dict]],
         *,
         thinking_budget: int | None = None,
-    ) -> tuple[np.ndarray, int]:
-        """Generate one shared thought, splice it before each target, then score answer-only."""
-        thinking_budget = self._effective_thinking_budget(thinking_budget)
-        thinking_message = await self._shared_thinking_message(thinking_messages, thinking_budget)
-        continued = self._continued_messages(thinking_messages, thinking_message, messages_list)
-        return await self._score_binary_after_shared_thinking(continued)
+    ) -> tuple[np.ndarray, int, dict]:
+        """Generate one shared thought, splice it before each target, then score answer-only.
 
-    async def _shared_thinking_message(self, messages: list[dict], thinking_budget: int) -> dict:
+        Returns (p_yes, n_fallback, thinking record of the shared thought).
+        """
+        thinking_budget = self._effective_thinking_budget(thinking_budget)
+        thinking_message, thinking_record = await self._shared_thinking_message(thinking_messages, thinking_budget)
+        continued = [[*thinking_messages, thinking_message, messages[-1]] for messages in messages_list]
+        scores, n_fallback = await self._score_binary_after_shared_thinking(continued)
+        return scores, n_fallback, thinking_record
+
+    async def _shared_thinking_message(self, messages: list[dict], thinking_budget: int) -> tuple[dict, dict]:
+        """Return (assistant message holding only the thinking block, its thinking record)."""
         raise NotImplementedError(f"{type(self).__name__} does not support shared-prefix thinking")
 
     async def _score_binary_after_shared_thinking(self, continued_messages: list[list[dict]]) -> tuple[np.ndarray, int]:

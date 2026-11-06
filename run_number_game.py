@@ -1,10 +1,4 @@
-"""Number game factorial experiment runner.
-
-Iterates experiment factors (task, eval_mode, h_space, sampling, domain), with
-hypothesis_eval fixed to explicit h_space. ``--model bayesian`` builds the
-Bayesian/Human baselines; LLM runs load those cached baselines for analysis and
-otherwise score only their own conditions within each task/domain/prompt group.
-"""
+"""Score raw condition caches for one LLM, or build the Bayesian/human baselines with ``--model bayesian``."""
 
 import argparse
 import asyncio
@@ -17,14 +11,7 @@ from dataclasses import asdict, dataclass, replace
 from backends import create_backend
 from configs.cli import add_common_cli_args, experiment_from_args
 from configs.layout import condition_data_path, parse_failure_path, text_posterior_progress_dir
-from configs.settings import EVAL_MODES, RUN_PROFILE_NAMES, is_baseline_run, make_grid
-from analysis.cache import (
-    bayesian_cache_identity,
-    load_bayesian,
-    load_prefix_cache,
-    serialize_prefix_cache,
-    task_context,
-)
+from configs.settings import EVAL_MODES, MINI_CONDITIONS, RUN_PROFILES, is_baseline_run, make_grid
 from scoring.eval_modes import (
     TEXT_TRIAL_FORMAT,
     TextTrialTransportFailure,
@@ -32,9 +19,11 @@ from scoring.eval_modes import (
     text_trial_messages,
     valid_cached_result,
 )
+from scoring.cache import load_prefix_cache, serialize_prefix_cache
 from scoring.run_condition import collect_unique_prefixes, score_condition
 from scoring.text_trial_progress import remove_text_trial_progress
 from tasks.prompt_space import build_prompt_space_spec
+from tasks.stimuli import build_task_context
 from utils import load_json, seed_everything, save_json, group_by
 
 
@@ -89,31 +78,21 @@ def _select_conditions(conditions, selectors: RunSelectors):
 def _conditions_for_run(experiment, selectors: RunSelectors):
     """Build the default grid, or an ad hoc eval-mode grid for explicit CLI runs."""
     if selectors.eval_mode is not None:
-        tasks = {
-            task_name: replace(factors, eval_modes=[selectors.eval_mode])
-            for task_name, factors in experiment.tasks.items()
-            if selectors.task is None or task_name == selectors.task
-        }
+        tasks = {task_name: replace(factors, eval_modes=[selectors.eval_mode]) for task_name, factors in experiment.tasks.items()}
         experiment = replace(experiment, tasks=tasks)
     conditions = [
         condition for condition in make_grid(experiment)
-        if experiment.run_profile.includes(condition)
+        if experiment.run_profile == "full"
+        or (condition.eval_mode, condition.h_space, condition.sampling) in MINI_CONDITIONS
     ]
     return _select_conditions(conditions, selectors)
 
 
-def _load_task_contexts(experiment, conditions):
-    """Build task contexts and require their precomputed Bayesian baselines."""
+def _load_task_contexts(conditions):
+    """Build one task context per (task, domain)."""
     contexts = {}
     for (task_name, domain), _ in group_by(conditions, lambda c: c.context_key):
-        preds, hyp_preds = load_bayesian(task_name, domain, bayesian_cache_identity(experiment, task_name, domain))
-        if not preds or not hyp_preds:
-            raise RuntimeError(
-                f"Missing Bayesian baseline for {task_name} d{domain}. "
-                "Run `python run_number_game.py --model bayesian` first."
-            )
-        print(f"  [{task_name} d{domain}] Loaded cached Bayesian predictions")
-        contexts[(task_name, domain)] = task_context(experiment, task_name, domain)
+        contexts[(task_name, domain)] = build_task_context(task_name, domain)
     return contexts
 
 
@@ -190,10 +169,7 @@ def _raw_cache_identity(experiment, condition, ctx) -> dict:
 
 def _raw_cache_problem(raw: dict, experiment, condition, ctx) -> str | None:
     """Why an existing raw cache cannot be reused as-is, or None when it matches."""
-    identity = raw.get("cache_identity")
-    expected = _raw_cache_identity(experiment, condition, ctx)
-    # Extra recorded keys (historical provenance) do not invalidate a cache.
-    if not isinstance(identity, dict) or any(identity.get(key) != value for key, value in expected.items()):
+    if raw.get("cache_identity") != _raw_cache_identity(experiment, condition, ctx):
         return "incompatible with the requested semantics"
     metadata = raw["experiment_condition"]
     if (
@@ -234,8 +210,8 @@ def _estimate_message_tokens(messages: list[dict]) -> int:
     return (characters + 3) // 4
 
 
-def _preflight_text_posterior(experiment, backend, conditions, contexts, *, allow_text_posterior: bool) -> None:
-    """Print the pending text-trial request/token estimate and require explicit opt-in."""
+def _preflight_text_posterior(experiment, backend, conditions, contexts, *, allow_text_posterior: bool) -> dict | None:
+    """Print and return the pending text-trial request/token totals; scoring them requires explicit opt-in."""
     text_conditions = [
         condition for condition in conditions
         if condition.eval_mode == "posterior"
@@ -243,7 +219,7 @@ def _preflight_text_posterior(experiment, backend, conditions, contexts, *, allo
         and _load_matching_cache(experiment, condition, contexts[condition.context_key]) is None
     ]
     if not text_conditions:
-        return
+        return None
 
     totals = dict.fromkeys(("prefixes", "requests", "judgments", "batch_jobs", "input_tokens", "output_tokens"), 0)
     print("\nText posterior preflight (explicit opt-in required):")
@@ -295,6 +271,7 @@ def _preflight_text_posterior(experiment, backend, conditions, contexts, *, allo
             "Text posterior is disabled by default. Review the preflight estimate, "
             "then re-run with --allow-text-posterior."
         )
+    return totals
 
 
 async def _run_eval_conditions(eval_conditions, ctx, backend, experiment):
@@ -323,7 +300,7 @@ async def _run_eval_conditions(eval_conditions, ctx, backend, experiment):
             remove_text_trial_progress(progress_path)
         print(f"  [{condition.eval_mode}] Scoring {len(ctx.task.stimuli)} stimulus sets, "
               f"max_examples={experiment.scoring.max_examples}...")
-        cache, prefix_diagnostics = await score_condition(
+        cache, prefix_diagnostics, thinking = await score_condition(
             backend, condition, ctx,
             max_examples=experiment.scoring.max_examples,
             max_retries=experiment.scoring.max_retries,
@@ -340,10 +317,9 @@ async def _run_eval_conditions(eval_conditions, ctx, backend, experiment):
             "prefix_cache": serialize_prefix_cache(cache),
         }
         if prefix_diagnostics is not None:
-            payload["posterior_diagnostics"] = {
-                "text_format": TEXT_TRIAL_FORMAT,
-                "per_prefix": serialize_prefix_cache(prefix_diagnostics),
-            }
+            payload["posterior_diagnostics"] = {"per_prefix": serialize_prefix_cache(prefix_diagnostics)}
+        if thinking is not None and experiment.backend.thinking:
+            payload["thinking_diagnostics"] = {"per_prefix": serialize_prefix_cache(thinking)}
         save_json(data_path, payload)
         if progress_path is not None:
             remove_text_trial_progress(progress_path, expected_identity=identity)
@@ -378,7 +354,7 @@ async def _run_batch_api_context(conditions, ctx, backend, experiment):
     """Run condition-wide Batch jobs through a bounded FIFO worker pool."""
     ordered = [
         condition
-        for _, eval_conditions in group_by(conditions, lambda c: c.prompt_key)
+        for _, eval_conditions in group_by(conditions, lambda c: c.prompt_group)
         for condition in eval_conditions
     ]
     await _run_bounded(
@@ -394,7 +370,7 @@ async def _run_online_contexts(conditions, contexts, backend, experiment) -> Non
     async def run_context(item):
         (task_name, domain), ctx_conditions = item
         _print_context_header(task_name, domain)
-        for _, eval_conditions in group_by(ctx_conditions, lambda c: c.prompt_key):
+        for _, eval_conditions in group_by(ctx_conditions, lambda c: c.prompt_group):
             try:
                 await _run_eval_conditions(eval_conditions, contexts[(task_name, domain)], backend, experiment)
             except TextTrialTransportFailure as exc:
@@ -423,11 +399,10 @@ async def _run_experiment(experiment, backend, selectors=RunSelectors(), *, allo
     conditions = _conditions_for_run(experiment, selectors)
     print(
         f"Experiment grid: {len(conditions)} conditions "
-        f"(profile={experiment.run_profile.name}, overwrite={experiment.overwrite})"
+        f"(profile={experiment.run_profile}, overwrite={experiment.overwrite})"
     )
 
-    print("\nLoading Bayesian baselines...")
-    contexts = _load_task_contexts(experiment, conditions)
+    contexts = _load_task_contexts(conditions)
     _preflight_text_posterior(experiment, backend, conditions, contexts, allow_text_posterior=allow_text_posterior)
 
     if backend.batch_api_enabled:
@@ -460,7 +435,7 @@ def main():
                         help="Print top_logprobs when binary scoring falls back to 0.5")
     parser.add_argument("--concurrency", type=int, default=None,
                         help="Override CONCURRENCY from configs/number_game.yml")
-    parser.add_argument("--run-profile", choices=RUN_PROFILE_NAMES, default=None,
+    parser.add_argument("--run-profile", choices=RUN_PROFILES, default=None,
                         help="LLM scoring schedule: full canonical grid or request-minimal mini subset.")
     parser.add_argument("--online", action="store_true",
                         help="Use online generateContent instead of the configured Gemini Batch API.")
@@ -503,7 +478,8 @@ def main():
     if args.online:
         if experiment.backend.backend != "google_cloud":
             parser.error("--online is only valid with the google_cloud backend")
-        experiment = replace(experiment, backend=replace(experiment.backend, execution="online"))
+        backend = experiment.backend
+        experiment = replace(experiment, backend=replace(backend, binding=replace(backend.binding, execution="online")))
     seed_everything(experiment.seed)
     if is_baseline_run(experiment.model):
         if args.refresh_raw_cache:

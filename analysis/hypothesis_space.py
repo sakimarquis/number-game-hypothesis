@@ -1,24 +1,23 @@
 """Executable hypothesis supports and cross-mode projection into predictive space.
 
   - prompt_items          : prompt-local rule/interval labels with executable supports over 1..domain
-  - eval_lookup           : hypothesis_eval label -> (kind, support) for one prompt
-  - HypothesisLibrary     : executable predicates indexed by structured generation
-  - ProjectedView         : posterior / hypothesis_eval / hypothesis_generation -> shared predictive space
+  - eval_mapper / generation_mapper : hypothesis_eval label / structured item -> executable support
+  - project_result        : posterior / hypothesis_eval / hypothesis_generation -> shared predictive space
+  - project_trajectory    : project_result over every stored prefix of one condition
 """
 from __future__ import annotations
 
-import os
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from functools import lru_cache
 
 import numpy as np
-import pandas as pd
 
-from analysis.hypothesis_structuring import library_path, load_library_module
+from analysis.hypothesis_structuring import HypothesisLibrary, load_hypothesis_library
 from tasks.prompt_space import build_prompt_space_spec
 from tasks.prompts import interval_label
 from tasks.stimuli import TaskContext
+
+RULE_SHARE_TOP_K = (1, 3, 5)  # cutoffs written as hypothesis-compare `rule_share_top{k}` columns
 
 
 # ===== Prompt-local executable supports =====
@@ -27,19 +26,20 @@ from tasks.stimuli import TaskContext
 class PromptItem:
     """One prompt label with its executable support over 1..domain.
 
-    Grouped rule families use the mean of member supports; `distribution` is the
-    mean of member distributions, so each member contributes equal mass.
+    Grouped rule families use the mean of the supports of members consistent with the
+    prompt's examples (all members when none is); `distribution` is the mean of those
+    members' distributions, so each contributes equal mass.
     """
 
     label: str
-    kind: str
+    type: str
     support: np.ndarray
     distribution: np.ndarray
 
 
 def hypothesis_support(hypothesis, domain: int) -> np.ndarray:
     support = np.zeros(domain, dtype=float)
-    for value in hypothesis.extension(range(1, domain + 1)):
+    for value in hypothesis.support(range(1, domain + 1)):
         support[value - 1] = 1.0
     return support
 
@@ -57,14 +57,17 @@ def rule_supports(ctx: TaskContext) -> dict[str, np.ndarray]:
 
 
 def grouped_family_vectors(supports: dict[str, np.ndarray], rule_families: dict[str, list[str]],
-                           *, normalize_members: bool) -> dict[str, np.ndarray]:
-    return {
-        family: np.mean([
+                           examples: list[int], *, normalize_members: bool) -> dict[str, np.ndarray]:
+    """Mean member vector per family; members inconsistent with `examples` drop out unless all are."""
+    evidence_idx = np.asarray(examples, dtype=int) - 1
+    vectors = {}
+    for family, members in rule_families.items():
+        consistent = [member for member in members if supports[member][evidence_idx].all()]
+        vectors[family] = np.mean([
             supports[member] / supports[member].sum() if normalize_members else supports[member]
-            for member in members
+            for member in consistent or members
         ], axis=0)
-        for family, members in rule_families.items()
-    }
+    return vectors
 
 
 def prompt_items(ctx: TaskContext, examples: list[int]) -> list[PromptItem]:
@@ -74,8 +77,8 @@ def prompt_items(ctx: TaskContext, examples: list[int]) -> list[PromptItem]:
     if spec.rule_families is None:
         rule_vectors = {label: (supports[label], supports[label] / supports[label].sum()) for label in spec.rule_labels}
     else:
-        grouped = grouped_family_vectors(supports, spec.rule_families, normalize_members=False)
-        grouped_distributions = grouped_family_vectors(supports, spec.rule_families, normalize_members=True)
+        grouped = grouped_family_vectors(supports, spec.rule_families, examples, normalize_members=False)
+        grouped_distributions = grouped_family_vectors(supports, spec.rule_families, examples, normalize_members=True)
         rule_vectors = {label: (grouped[label], grouped_distributions[label]) for label in spec.rule_labels}
 
     items = [PromptItem(label, "rule", *vectors) for label, vectors in rule_vectors.items()]
@@ -89,75 +92,34 @@ def prompt_items(ctx: TaskContext, examples: list[int]) -> list[PromptItem]:
 
 @dataclass(frozen=True)
 class ProjectedView:
-    """One mode's projection into predictive space plus coverage diagnostics."""
+    """One mode's projection into predictive space plus its rule, interval, and non-executable ("other") mass."""
 
-    vector: np.ndarray
-    semantics: str
-    total_mass: float
-    matched_mass: float
-    unmatched_mass: float
-    total_items: int
-    matched_items: int
-    unmatched_items: int
+    vector: np.ndarray  # [domain]; NaN when no mass is executable
+    other_mass: float
     rule_mass: float = 0.0
     interval_mass: float = 0.0
-    rule_items: int = 0
-    interval_items: int = 0
-
-    @property
-    def coverage(self) -> float:
-        return self.matched_mass / self.total_mass if self.total_mass > 0 else 0.0
-
-    @property
-    def matched_item_frac(self) -> float:
-        return self.matched_items / self.total_items if self.total_items > 0 else 0.0
-
-    @property
-    def unmatched_item_frac(self) -> float:
-        return self.unmatched_items / self.total_items if self.total_items > 0 else 0.0
+    executable: tuple[tuple[str, float], ...] = ()  # (type, weight) per executable item
 
     @property
     def usable(self) -> bool:
         """Whether the projection contains a finite predictive target."""
         return bool(self.vector.size and np.isfinite(self.vector).all())
 
+    def rule_share(self, k: int) -> float:
+        """Rule share of weight among the k most confident executable items; NaN without any.
 
-def eval_lookup(ctx: TaskContext, examples: list[int]) -> dict[str, tuple[str, np.ndarray]]:
-    """(kind, support) for every hypothesis_eval prompt label of one stimulus prefix.
-
-    Grouped eval prompts (Bigelow16) name base families plus a transform note;
-    their executable proxy is the uniform mean over descendant rule extensions.
-    """
-    return {item.label: (item.kind, item.support) for item in prompt_items(ctx, examples)}
-
-
-@dataclass(frozen=True)
-class HypothesisLibrary:
-    """Executable generated-hypothesis predicates indexed by structured JSON."""
-
-    domain: int
-    vectors: dict[int, np.ndarray]
-    labels: dict[int, str]
-
-
-def load_hypothesis_library(domain: int) -> HypothesisLibrary:
-    path = str(library_path(domain))
-    return _load_hypothesis_library_cached(path, os.stat(path).st_mtime_ns, domain)
-
-
-@lru_cache(maxsize=None)
-def _load_hypothesis_library_cached(path: str, mtime_ns: int, domain: int) -> HypothesisLibrary:
-    """Load library_dN.py as the source of executable generation semantics."""
-    module = load_library_module(path, f"_number_game_library_d{domain}_{mtime_ns}")
-    vectors = {
-        int(index): np.asarray([float(bool(fn([x]))) for x in range(1, domain + 1)], dtype=float)
-        for index, fn in module.LIBRARY.items()
-    }
-    labels = {
-        int(index): ((fn.__doc__ or f"library:{index}").strip().splitlines()[0])
-        for index, fn in module.LIBRARY.items()
-    }
-    return HypothesisLibrary(domain=domain, vectors=vectors, labels=labels)
+        Items tied at the cutoff split its remaining slots equally, so prompt order
+        (Eval lists rules before intervals) cannot break ties toward rules.
+        """
+        if not self.executable:
+            return float("nan")
+        ranked = sorted(self.executable, key=lambda item: item[1], reverse=True)
+        cutoff = ranked[min(k, len(ranked)) - 1][1]
+        above = [item for item in ranked if item[1] > cutoff]
+        tied = [item for item in ranked if item[1] == cutoff]
+        fraction = (min(k, len(ranked)) - len(above)) / len(tied)
+        kept = above + [(hypothesis_type, weight * fraction) for hypothesis_type, weight in tied]
+        return sum(weight for hypothesis_type, weight in kept if hypothesis_type == "rule") / sum(weight for _, weight in kept)
 
 
 def collapse_structured_generation(result: list[dict]) -> list[dict]:
@@ -181,10 +143,6 @@ def normalized_hypothesis_items(items: Iterable[tuple[object, object]]) -> list[
     return [(label, weight / total) for label, weight in active] if total > 0.0 else []
 
 
-def normalize_hypothesis_weight_dict(result: dict) -> dict:
-    return dict(normalized_hypothesis_items(result.items()))
-
-
 def normalize_structured_generation_confidence(result: list[dict]) -> list[dict]:
     return [
         {**item, "confidence": weight}
@@ -194,120 +152,94 @@ def normalize_structured_generation_confidence(result: list[dict]) -> list[dict]
     ]
 
 
-ProjectionMapping = tuple[str, str, np.ndarray]
+ProjectionMapping = tuple[str, str, np.ndarray]  # (type, label, support)
+Mapper = Callable[[object], ProjectionMapping | None]
 
 
-def map_structured_generation_item(item: dict, library: HypothesisLibrary) -> ProjectionMapping | None:
-    if item.get("type") not in {"rule", "interval"}:
-        return None
-    return item["type"], library.labels[item["index"]], library.vectors[item["index"]]
+def eval_mapper(ctx: TaskContext, examples: list[int]) -> Mapper:
+    """Map hypothesis_eval labels of one stimulus prefix to their supports; 'other' and unknown labels map to None.
+
+    Grouped eval prompts (Bigelow16) name base families plus a transform note;
+    their executable proxy is the uniform mean over the descendant rule extensions
+    consistent with `examples` (over all descendants when none is).
+    """
+    lookup = {item.label: (item.type, item.support) for item in prompt_items(ctx, examples)}
+    return lambda label: None if label not in lookup else (lookup[label][0], label, lookup[label][1])
 
 
-def map_eval_label(label: str, lookup: dict[str, tuple[str, np.ndarray]]) -> ProjectionMapping | None:
-    """Map one hypothesis_eval label through its prompt lookup; 'other' and unknown labels are unmatched."""
-    entry = lookup.get(label)
-    return None if entry is None else (entry[0], label, entry[1])
-
-
-def project_posterior(values: np.ndarray) -> ProjectedView:
-    vec = np.asarray(values, dtype=float)
-    return ProjectedView(
-        vector=vec,
-        semantics="direct",
-        total_mass=1.0,
-        matched_mass=1.0,
-        unmatched_mass=0.0,
-        total_items=len(vec),
-        matched_items=len(vec),
-        unmatched_items=0,
+def generation_mapper(library: HypothesisLibrary) -> Mapper:
+    """Map structured generation items to library supports; "other" items map to None."""
+    return lambda item: (
+        (item["type"], library.labels[item["index"]], library.vectors[item["index"]])
+        if item.get("type") in {"rule", "interval"} else None
     )
 
 
 def _project_weighted_items(
     items: Iterable[tuple[object, object]],
-    mapper: Callable[[object], ProjectionMapping | None],
+    mapper: Mapper,
     domain: int,
-    semantics: str,
 ) -> ProjectedView:
-    """Accumulate weighted executable items into predictive space."""
+    """Accumulate weighted executable items into predictive space; non-positive weights are fillers."""
     vector = np.zeros(domain, dtype=float)
-    total_mass = matched_mass = unmatched_mass = rule_mass = interval_mass = 0.0
-    total_items = matched_items = unmatched_items = rule_items = interval_items = 0
-
+    mass = {"other": 0.0, "rule": 0.0, "interval": 0.0}
+    executable = []
     for item, raw_weight in items:
         weight = float(raw_weight)
-        total_mass += weight
-        # Item diagnostics should reflect active hypotheses, not zero-weight fillers.
         if weight <= 0.0:
             continue
-        total_items += 1
         mapped = mapper(item)
         if mapped is None:
-            unmatched_mass += weight
-            unmatched_items += 1
+            mass["other"] += weight
             continue
-        kind, _label, vec = mapped
+        hypothesis_type, _label, vec = mapped
         vector += weight * vec
-        matched_mass += weight
-        matched_items += 1
-        if kind == "rule":
-            rule_mass += weight
-            rule_items += 1
-        else:
-            interval_mass += weight
-            interval_items += 1
+        mass[hypothesis_type] += weight
+        executable.append((hypothesis_type, weight))
 
     return ProjectedView(
         # No executable mass means there is no predictive observation. Keeping
         # this missing prevents exhausted parses from becoming confident zeros.
-        vector=vector if matched_mass > 0.0 else np.full(domain, np.nan),
-        semantics=semantics,
-        total_mass=total_mass,
-        matched_mass=matched_mass,
-        unmatched_mass=unmatched_mass,
-        total_items=total_items,
-        matched_items=matched_items,
-        unmatched_items=unmatched_items,
-        rule_mass=rule_mass,
-        interval_mass=interval_mass,
-        rule_items=rule_items,
-        interval_items=interval_items,
+        vector=vector if executable else np.full(domain, np.nan),
+        other_mass=mass["other"],
+        rule_mass=mass["rule"],
+        interval_mass=mass["interval"],
+        executable=tuple(executable),
     )
 
 
 def project_hypothesis_eval(result: dict[str, float], examples: list[int], ctx: TaskContext) -> ProjectedView:
     """Project prompt-listed hypotheses into predictive space."""
-    lookup = eval_lookup(ctx, examples)
-    return _project_weighted_items(
-        result.items(),
-        lambda label: map_eval_label(label, lookup),
-        ctx.domain,
-        "direct" if ctx.rule_families is None else "family_mean",
-    )
+    return _project_weighted_items(result.items(), eval_mapper(ctx, examples), ctx.domain)
 
 
 def project_structured_hypothesis_generation(result: list[dict], library: HypothesisLibrary) -> ProjectedView:
-    """Project structured generation through library predicates, not text matching."""
-    return _project_weighted_items(
-        ((item, item["confidence"]) for item in collapse_structured_generation(result)),
-        lambda item: map_structured_generation_item(item, library),
-        library.domain,
-        "structured_library",
+    """Project collapsed, normalized structured generation through library predicates, not text matching."""
+    return _project_weighted_items(((item, item["confidence"]) for item in result), generation_mapper(library), library.domain)
+
+
+def project_result(eval_mode: str, result, examples: list[int], ctx: TaskContext) -> ProjectedView:
+    """Project one stored prefix result of any eval mode into 1..domain predictive space.
+
+    Stored hypothesis_eval weights are already normalized by scoring; generation
+    confidences are normalized here after collapsing duplicate library indices.
+    """
+    if eval_mode == "posterior":
+        return ProjectedView(vector=np.asarray(result, dtype=float), other_mass=0.0)
+    if eval_mode == "hypothesis_eval":
+        return project_hypothesis_eval(result, examples, ctx)
+    return project_structured_hypothesis_generation(
+        normalize_structured_generation_confidence(result), load_hypothesis_library(ctx.domain),
     )
 
 
-def summarize_projection_rows(df: pd.DataFrame, group_cols: list[str]) -> list[dict]:
-    rows = []
-    for key, group in df.groupby(group_cols, dropna=False):
-        rows.append({
-            **dict(zip(group_cols, key)),
-            "n_rows": int(len(group)),
-            "coverage_mean": float(group["coverage"].mean()),
-            "matched_mass_mean": float(group["matched_mass"].mean()),
-            "unmatched_mass_mean": float(group["unmatched_mass"].mean()),
-            "matched_item_frac_mean": float(group["matched_item_frac"].mean()),
-            "unmatched_item_frac_mean": float(group["unmatched_item_frac"].mean()),
-            "rule_mass_mean": float(group["rule_mass"].mean()),
-            "interval_mass_mean": float(group["interval_mass"].mean()),
-        })
-    return rows
+
+def project_trajectory(eval_mode: str, trajectory: dict[str, dict], ctx: TaskContext) -> dict[str, dict[int, ProjectedView]]:
+    """Project every stored prefix result of one condition trajectory: {stimulus: {n_examples: view}}."""
+    return {
+        name: {
+            n: project_result(eval_mode, result, ctx.task.stimulus_map[name].examples[:n], ctx)
+            for n, result in zip(ev["n_examples"], ev["results"])
+        }
+        for name, ev in trajectory.items()
+    }

@@ -1,7 +1,7 @@
 """Scoring pipelines for each evaluation mode.
 
 Each scorer takes (backend, condition, prefixes, task context) and returns a
-ScorerBatch with values aligned to the prefixes. Value types differ by eval mode:
+ScoredPrefixes with values aligned to the prefixes. Value types differ by eval mode:
   posterior:             np.ndarray of shape (domain,)
   hypothesis_eval:       {hypothesis_label: probability}
   hypothesis_generation: [{hypothesis: str, confidence: float}]
@@ -17,7 +17,7 @@ from typing import Any
 import numpy as np
 
 from configs.layout import condition_batch_key
-from configs.settings import EVAL_MODES, ExperimentCondition
+from configs.settings import GREEDY, ExperimentCondition, GenerationSamplingConfig
 from scoring.text_trial_progress import INITIAL_PHASE, RECOVERY_PHASES, TextTrialProgress
 from tasks.prompt_space import PromptSpaceSpec, build_prompt_space_spec
 from tasks.prompts import (
@@ -41,11 +41,16 @@ class TextTrialTransportFailure(RuntimeError):
 
 
 @dataclass(frozen=True)
-class ScorerBatch:
-    """Ordered scorer values plus optional diagnostics aligned by prefix."""
+class ScoredPrefixes:
+    """Scorer values plus optional diagnostics, aligned with the scored prefixes.
+
+    `thinking` holds one GenerateResult.thinking_record() per generation request
+    made for each prefix (every attempt or trial, or the shared thought).
+    """
 
     values: list[Any]
     prefix_diagnostics: list[dict[str, Any]] | None = None
+    thinking: list[list[dict]] | None = None
 
 
 def posterior_vector_max_tokens(domain: int) -> int:
@@ -110,18 +115,6 @@ def _json_candidates(text: str, opener: str) -> list[str]:
     return [c for c in (stripped, embedded) if c]
 
 
-def _shorten(text: str, limit: int = 160, tail: bool = False) -> str:
-    compact = re.sub(r"\s+", " ", text).strip()
-    if len(compact) <= limit:
-        return compact
-    return ("..." + compact[-(limit - 3):]) if tail else (compact[:limit - 3] + "...")
-
-
-def _first_json_start(text: str) -> int:
-    starts = [idx for idx in (text.find("{"), text.find("[")) if idx >= 0]
-    return min(starts) if starts else -1
-
-
 def _make_parse_failure_event(
     prefix: list[int],
     text: str,
@@ -136,10 +129,6 @@ def _make_parse_failure_event(
         "attempt": attempt,
         "max_retries": max_retries,
         "parse_error": f"{type(parse_error).__name__}: {parse_error}" if parse_error else None,
-        "chars": len(text),
-        "json_start": _first_json_start(text),
-        "head": _shorten(text, limit=120),
-        "tail": _shorten(text, limit=120, tail=True),
         "raw": text,
     }
 
@@ -300,7 +289,10 @@ def _validate_hypothesis_generation(parsed: list[dict], n_hypotheses: int) -> li
 
 
 def valid_cached_result(condition: ExperimentCondition, result, spec: PromptSpaceSpec) -> bool:
-    """Whether one stored prefix result satisfies the same contract scoring publishes."""
+    """Whether one stored prefix result satisfies the same contract scoring publishes.
+
+    Hypothesis modes publish an empty value for exhausted parses; analysis counts it as exhausted.
+    """
     if condition.eval_mode == "posterior":
         return (
             isinstance(result, list)
@@ -308,13 +300,13 @@ def valid_cached_result(condition: ExperimentCondition, result, spec: PromptSpac
             and all(_finite_probability(value) for value in result)
         )
     if condition.eval_mode == "hypothesis_eval":
-        return (
-            isinstance(result, dict)
-            and bool(result)
-            and set(result) <= set(spec.unique_labels)
+        return isinstance(result, dict) and (not result or (
+            set(result) <= set(spec.unique_labels)
             and all(_finite_probability(value) for value in result.values())
             and sum(result.values()) > 0
-        )
+        ))
+    if result == []:
+        return True
     try:
         items = _extract_hyp_conf(result) if isinstance(result, list) else []
         return bool(items) and items == result and bool(
@@ -346,122 +338,41 @@ def _log_prefix_range(prefix: list[int], probs: np.ndarray, suffix: str = "") ->
 
 
 async def _generate_all(
-    backend, messages_list, *, max_tokens, temperature, thinking_budget,
-    generation_config=None, batch_key=None, response_json_schema=None,
+    backend, messages_list, *, max_tokens, generation_config, thinking_budget,
+    batch_key=None, response_json_schema=None,
     completion_callback=None, isolate_retryable_errors=False,
 ):
     """Generate every prompt, returning results (or isolated retryable errors) in order.
 
-    Caller-batched backends are chunked by `batch_size`. With
-    `isolate_retryable_errors`, each request completes independently so durable
+    With `isolate_retryable_errors`, each request completes independently so durable
     callbacks see every success even when peers fail transiently.
     """
     kwargs = {
         "max_tokens": max_tokens,
-        "temperature": temperature,
         "thinking_budget": thinking_budget,
         "generation_config": generation_config,
     }
     if response_json_schema is not None and backend.supports_json_schema:
         kwargs["response_json_schema"] = response_json_schema
 
-    def notify(offset, results):
-        if completion_callback is not None:
-            for index, result in enumerate(results, start=offset):
-                completion_callback(index, result)
-
-    if backend.caller_batched:
-        results = []
-        for start in range(0, len(messages_list), backend.batch_size):
-            generated = await backend.generate_batch(messages_list[start:start + backend.batch_size], **kwargs)
-            notify(start, generated)
-            results.extend(generated)
-        return results
-
     if isolate_retryable_errors:
         async def one(index, messages):
             try:
-                generated = await backend.generate(messages, **kwargs)
+                generated = (await backend.generate([messages], **kwargs))[0]
             except Exception as exc:
                 if backend.is_retryable_generation_error(exc):
                     return exc
                 raise
-            notify(index, [generated])
+            if completion_callback is not None:
+                completion_callback(index, generated)
             return generated
 
         return await asyncio.gather(*[one(index, messages) for index, messages in enumerate(messages_list)])
 
-    results = await backend.generate_batch(messages_list, batch_key=batch_key, **kwargs)
-    notify(0, results)
-    return results
-
-
-async def _generate_and_parse(
-    backend,
-    messages_list,
-    prefixes,
-    *,
-    max_tokens,
-    parser,
-    empty,
-    max_retries,
-    retry_instruction: str,
-    thinking_budget: int = 0,
-    failure_log_path: str | None = None,
-    generation_config=None,
-    validator=None,
-    batch_key_base: str | None = None,
-):
-    """Batch-generate and parse with per-index retries on parse failure.
-
-    Returns one parsed value per prefix; exhausted parse failures yield empty().
-    """
-    results: list = [None] * len(prefixes)
-    pending = dict(enumerate(messages_list))
-    last_raw: dict[int, str] = {}
-    failure_events: list[dict] = []
-
-    for attempt in range(1 + max_retries):
-        if not pending:
-            break
-        indices = sorted(pending)
-        gens = await _generate_all(
-            backend, [pending[i] for i in indices],
-            max_tokens=max_tokens,
-            temperature=generation_config.temperature if generation_config is not None else 0.0,
-            thinking_budget=thinking_budget,
-            generation_config=generation_config,
-            batch_key=f"{batch_key_base}-attempt-{attempt}" if batch_key_base is not None else None,
-        )
-        still_pending = {}
-        for idx, gen in zip(indices, gens):
-            text = _strip_thinking(gen.text)
-            parse_error = None
-            try:
-                parsed = parser(text)
-                if parsed is not None and validator is not None:
-                    parsed = validator(idx, parsed)
-            except (TypeError, ValueError) as exc:
-                parsed = None
-                parse_error = exc
-            if parsed is not None:
-                results[idx] = parsed
-                continue
-            last_raw[idx] = text
-            still_pending[idx] = _retry_json_messages(pending[idx], retry_instruction)
-            if attempt < max_retries:
-                failure_events.append(_make_parse_failure_event(
-                    prefixes[idx], text, "retry", attempt + 1, max_retries, parse_error=parse_error,
-                ))
-        pending = still_pending
-
-    for idx in pending:
-        results[idx] = empty()
-        failure_events.append(_make_parse_failure_event(
-            prefixes[idx], last_raw[idx], "exhausted", max_retries + 1, max_retries,
-        ))
-
-    _publish_parse_failures(failure_log_path, failure_events)
+    results = await backend.generate(messages_list, batch_key=batch_key, **kwargs)
+    if completion_callback is not None:
+        for index, result in enumerate(results):
+            completion_callback(index, result)
     return results
 
 
@@ -473,11 +384,11 @@ async def score_posterior(
     *,
     progress_path: str | None = None,
     progress_identity: dict | None = None,
-) -> ScorerBatch:
+) -> ScoredPrefixes:
     """Binary scoring: p(yes) per target per prefix.
 
-    Dispatch precedence: configured method → shared-prefix thinking →
-    flat dispatch for backends owning concurrency → per-prefix chunks.
+    Dispatch precedence: configured method → shared-prefix thinking → one flat
+    dispatch over every prefix-target pair.
     """
     cfg = condition.mode_config
     if cfg.method == "text_trials":
@@ -488,9 +399,7 @@ async def score_posterior(
 
     if backend.enable_thinking:
         if cfg.thinking_mode == "shared_prefix":
-            return ScorerBatch(await _score_posterior_logits_shared_thinking(backend, condition, prefixes, ctx))
-        if cfg.thinking_mode != "per_target":
-            raise ValueError(f"Unknown POSTERIOR.thinking_mode: {cfg.thinking_mode!r}")
+            return await _score_posterior_logits_shared_thinking(backend, condition, prefixes, ctx)
         if not backend.supports_per_target_thinking:
             raise ValueError(
                 f"{type(backend).__name__} does not support per-target posterior thinking; "
@@ -498,43 +407,25 @@ async def score_posterior(
             )
 
     # Flattening across prefixes avoids idle gaps between per-prefix client prep.
-    if not backend.caller_batched:
-        return ScorerBatch(await _score_posterior_logits_flat(backend, condition, prefixes, ctx))
-    return ScorerBatch(await _score_posterior_per_prefix(backend, condition, prefixes, ctx))
+    return ScoredPrefixes(await _score_posterior_logits_flat(backend, condition, prefixes, ctx))
 
 
-async def _score_posterior_per_prefix(backend, condition, prefixes, ctx) -> list[np.ndarray]:
-    """Iterate prefixes and score target logits in backend-sized chunks."""
-    budget = condition.mode_config.thinking_budget
-    out: list[np.ndarray] = []
-    for prefix in prefixes:
-        preamble, _ = _preamble(condition, prefix, ctx)
-        messages = _target_messages(preamble, condition.domain)
-        chunks, n_fallback = [], 0
-        for start in range(0, len(messages), backend.batch_size):
-            scores, fallback = await backend.score_binary(messages[start:start + backend.batch_size], thinking_budget=budget)
-            chunks.append(np.asarray(scores, dtype=np.float32))
-            n_fallback += fallback
-        probs = np.concatenate(chunks)
-        out.append(probs)
-        _log_prefix_range(prefix, probs, f", {n_fallback} fallbacks" if n_fallback else "")
-    return out
-
-
-async def _score_posterior_logits_shared_thinking(backend, condition, prefixes, ctx) -> list[np.ndarray]:
+async def _score_posterior_logits_shared_thinking(backend, condition, prefixes, ctx) -> ScoredPrefixes:
     """One thinking rollout per prefix, then target-wise Yes/No logits."""
     out: list[np.ndarray] = []
+    thinking: list[list[dict]] = []
     for prefix in prefixes:
         preamble, _ = _preamble(condition, prefix, ctx)
-        scores, n_fallback = await backend.score_binary_with_shared_thinking(
+        scores, n_fallback, record = await backend.score_binary_with_shared_thinking(
             compose_posterior_reasoning_messages(preamble),
             _target_messages(preamble, condition.domain),
             thinking_budget=condition.mode_config.thinking_budget,
         )
         probs = np.asarray(scores, dtype=np.float32)
         out.append(probs)
+        thinking.append([record])
         _log_prefix_range(prefix, probs, f", {n_fallback} fallbacks" if n_fallback else "")
-    return out
+    return ScoredPrefixes(out, thinking=thinking)
 
 
 async def _score_posterior_logits_flat(backend, condition, prefixes, ctx) -> list[np.ndarray]:
@@ -588,7 +479,6 @@ def _parse_binary_vector(text: str, domain: int, encoding: str) -> np.ndarray | 
         if any(
             isinstance(value, bool)
             or not isinstance(value, (int, float))
-            or not np.isfinite(value)
             or value not in (0, 1)
             for value in values
         ):
@@ -605,12 +495,13 @@ async def _score_posterior_text_trials(
     *,
     progress_path: str | None = None,
     progress_identity: dict | None = None,
-) -> ScorerBatch:
+) -> ScoredPrefixes:
     """Estimate target marginals with resumable full-domain vector judgments."""
     cfg = condition.mode_config
     encoding = backend.text_trial_encoding
     prefix_messages = [text_trial_messages(condition, prefix, ctx, encoding) for prefix in prefixes]
-    batch_key = condition_batch_key(condition, "posterior-text-trials")
+    # Starts with the eval-mode key so release_batch_sidecars' prefix cleanup covers it.
+    batch_key = condition_batch_key(condition, f"{condition.eval_mode}-text-trials")
     progress = TextTrialProgress(
         progress_path,
         cache_identity=progress_identity,
@@ -624,6 +515,7 @@ async def _score_posterior_text_trials(
 
     vectors = np.full((len(prefixes), cfg.n_trials, condition.domain), np.nan)
     requested_counts = np.zeros(len(prefixes), dtype=int)
+    thinking: list[list[dict]] = [[] for _ in prefixes]
     invalid_vectors = 0
 
     async def complete_phase(phase: str, prefix_indices: list[int], recovery_number: int | None = None) -> None:
@@ -651,24 +543,23 @@ async def _score_posterior_text_trials(
         if not pending:
             return
 
-        retry_suffix = "" if recovery_number in (None, 1) else f"-{recovery_number}"
         for retry_sweep in range(retry_sweeps + 1):
             sweep_pending = list(pending)
 
             def checkpoint_result(result_index, result) -> None:
                 prefix_index, trial_index = sweep_pending[result_index]
-                progress.record_result(phase, prefix_index, trial_index, result.text)
+                progress.record_result(phase, prefix_index, trial_index, result.text, result.thinking_record())
 
             results = await _generate_all(
                 backend,
                 [prefix_messages[prefix_index] for prefix_index, _trial in sweep_pending],
                 max_tokens=posterior_vector_max_tokens(condition.domain),
-                temperature=cfg.temperature,
+                generation_config=GenerationSamplingConfig(temperature=cfg.temperature),
                 thinking_budget=(
                     max(cfg.thinking_budget, backend.structured_recovery_thinking_headroom_tokens)
                     if structured else cfg.thinking_budget
                 ),
-                batch_key=f"{batch_key}-missing-prefix-retry{retry_suffix}" if structured else batch_key,
+                batch_key=f"{batch_key}-missing-prefix-retry-{recovery_number}" if structured else batch_key,
                 response_json_schema=_posterior_vector_schema(condition.domain) if structured else None,
                 completion_callback=checkpoint_result,
                 isolate_retryable_errors=durable_progress,
@@ -697,6 +588,7 @@ async def _score_posterior_text_trials(
         for prefix_index in prefix_indices:
             for trial_index in range(cfg.n_trials):
                 requested_counts[prefix_index] += 1
+                thinking[prefix_index].append(progress.result_thinking(phase, prefix_index, trial_index))
                 vector = _parse_binary_vector(
                     progress.result_text(phase, prefix_index, trial_index), condition.domain, encoding,
                 )
@@ -735,56 +627,89 @@ async def _score_posterior_text_trials(
             prefix, probabilities[index],
             f", valid vectors {int(valid_counts[index])}/{int(requested_counts[index])}",
         )
-    return ScorerBatch(
+    return ScoredPrefixes(
         values=list(probabilities),
         prefix_diagnostics=[
             {"requested_vectors": int(requested), "valid_vectors": int(valid)}
             for requested, valid in zip(requested_counts, valid_counts)
         ],
+        thinking=thinking,
     )
 
 
-async def _run_json_eval_mode(
+async def _score_json_mode(
     backend,
     condition: ExperimentCondition,
     prefixes: list[list[int]],
     ctx: TaskContext,
     *,
-    max_retries,
+    max_retries: int,
     failure_log_path: str | None,
     compose_messages,
-    parser,
-    empty_value,
+    parse,
+    empty,
     retry_instruction: str,
-    post_process,
-    validator,
-    generation_config=None,
-):
-    """Run one JSON eval-style scorer over prefix-conditioned prompts."""
-    cfg = condition.mode_config
-    all_messages, specs = [], []
-    for prefix in prefixes:
-        preamble, spec = _preamble(condition, prefix, ctx)
-        all_messages.append(compose_messages(preamble, spec))
-        specs.append(spec)
+    generation_config: GenerationSamplingConfig,
+) -> ScoredPrefixes:
+    """Generate one JSON answer per prefix and re-ask only prefixes whose answer fails `parse`.
 
-    results = await _generate_and_parse(
-        backend, all_messages, prefixes,
-        max_tokens=cfg.max_tokens,
-        parser=parser,
-        empty=empty_value,
-        max_retries=max_retries,
-        retry_instruction=retry_instruction,
-        thinking_budget=cfg.thinking_budget,
-        failure_log_path=failure_log_path,
-        generation_config=generation_config,
-        validator=lambda idx, parsed: validator(specs[idx], parsed),
-        batch_key_base=condition_batch_key(condition, condition.eval_mode),
-    )
-    return ScorerBatch([
-        post_process(prefix, spec, parsed)
-        for prefix, spec, parsed in zip(prefixes, specs, results)
-    ])
+    `parse(text, spec)` returns the stored value, or None / raises ValueError for a
+    malformed answer; prefixes still malformed after `max_retries` store `empty()`.
+    """
+    cfg = condition.mode_config
+    specs, pending = [], {}
+    for index, prefix in enumerate(prefixes):
+        preamble, spec = _preamble(condition, prefix, ctx)
+        specs.append(spec)
+        pending[index] = compose_messages(preamble, spec)
+    results = [None] * len(prefixes)
+    thinking: list[list[dict]] = [[] for _ in prefixes]
+    last_raw: dict[int, str] = {}
+    failure_events: list[dict] = []
+    batch_key = condition_batch_key(condition, condition.eval_mode)
+
+    for attempt in range(1 + max_retries):
+        if not pending:
+            break
+        indices = sorted(pending)
+        gens = await _generate_all(
+            backend, [pending[i] for i in indices],
+            max_tokens=cfg.max_tokens,
+            thinking_budget=cfg.thinking_budget,
+            generation_config=generation_config,
+            batch_key=f"{batch_key}-attempt-{attempt}",
+        )
+        still_pending = {}
+        for idx, gen in zip(indices, gens):
+            thinking[idx].append(gen.thinking_record())
+            text = _strip_thinking(gen.text)
+            parse_error = None
+            try:
+                parsed = parse(text, specs[idx])
+            except (TypeError, ValueError) as exc:
+                parsed = None
+                parse_error = exc
+            if parsed is not None:
+                results[idx] = parsed
+                continue
+            last_raw[idx] = text
+            still_pending[idx] = _retry_json_messages(pending[idx], retry_instruction)
+            if attempt < max_retries:
+                failure_events.append(_make_parse_failure_event(
+                    prefixes[idx], text, "retry", attempt + 1, max_retries, parse_error=parse_error,
+                ))
+        pending = still_pending
+
+    for idx in pending:
+        results[idx] = empty()
+        failure_events.append(_make_parse_failure_event(
+            prefixes[idx], last_raw[idx], "exhausted", max_retries + 1, max_retries,
+        ))
+
+    _publish_parse_failures(failure_log_path, failure_events)
+    for prefix, result in zip(prefixes, results):
+        print(f"    prefix {prefix}: {len(result)} hypotheses")
+    return ScoredPrefixes(results, thinking=thinking)
 
 
 async def score_hypothesis_eval(
@@ -795,22 +720,20 @@ async def score_hypothesis_eval(
     *,
     max_retries: int,
     failure_log_path: str | None = None,
-) -> ScorerBatch:
+) -> ScoredPrefixes:
     """Rate given hypotheses. Values are normalized {label: probability} per prefix."""
-    def post_process(prefix, spec, parsed):
-        if not parsed:
-            return parsed
-        mass = _normalized_label_mass(parsed, spec.labels)
-        print(f"    prefix {prefix}: {len(mass)} hypotheses rated")
-        return mass
+    def parse(text, spec):
+        parsed = _parse_json_obj(text)
+        if parsed is None:
+            return None
+        return _normalized_label_mass(_validate_hypothesis_eval(parsed, spec.labels), spec.labels)
 
-    return await _run_json_eval_mode(
+    return await _score_json_mode(
         backend, condition, prefixes, ctx, max_retries=max_retries, failure_log_path=failure_log_path,
         compose_messages=lambda preamble, spec: compose_hypothesis_eval_messages(preamble, spec.labels, spec.transform_note),
-        parser=_parse_json_obj, empty_value=dict,
+        parse=parse, empty=dict,
         retry_instruction='Return a JSON object like {"1": 0.35, "2": 0.65}.',
-        post_process=post_process,
-        validator=lambda spec, parsed: _validate_hypothesis_eval(parsed, spec.labels),
+        generation_config=GREEDY,
     )
 
 
@@ -822,24 +745,22 @@ async def score_hypothesis_generation(
     *,
     max_retries: int,
     failure_log_path: str | None = None,
-) -> ScorerBatch:
+) -> ScoredPrefixes:
     """Generate hypotheses freely. Values are [{hypothesis, confidence}] per prefix."""
     cfg = condition.mode_config
 
-    def post_process(prefix, _spec, parsed):
-        print(f"    prefix {prefix}: {len(parsed)} hypotheses generated")
-        return parsed
+    def parse(text, _spec):
+        parsed = _parse_json_array(text)
+        return None if parsed is None else _validate_hypothesis_generation(parsed, cfg.n_hypotheses)
 
-    return await _run_json_eval_mode(
+    return await _score_json_mode(
         backend, condition, prefixes, ctx, max_retries=max_retries, failure_log_path=failure_log_path,
         compose_messages=lambda preamble, _spec: compose_hypothesis_generation_messages(
             preamble, cfg.n_hypotheses, condition.domain,
         ),
-        parser=_parse_json_array, empty_value=list,
+        parse=parse, empty=list,
         retry_instruction='Return a JSON array like [{"hypothesis": "description", "confidence": 0.8}].',
-        post_process=post_process,
         generation_config=cfg.sampling,
-        validator=lambda _spec, parsed: _validate_hypothesis_generation(parsed, cfg.n_hypotheses),
     )
 
 
@@ -848,5 +769,3 @@ SCORERS = {
     "hypothesis_eval": score_hypothesis_eval,
     "hypothesis_generation": score_hypothesis_generation,
 }
-
-assert set(SCORERS) == set(EVAL_MODES)

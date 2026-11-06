@@ -2,24 +2,16 @@
 
 import asyncio
 import math
-import os
 
 import numpy as np
 
-from backends.base import Backend, GenerateResult, assemble_binary_scores
+from backends.base import BINARY_VARIANTS, Backend, GenerateResult, assemble_binary_scores
 from backends.thinking_codec import text_thinking_protocol
-from configs.settings import GenerationSamplingConfig
+from configs.settings import GREEDY, GenerationSamplingConfig
 
 
-# Run sample()/compute_logprobs() in a dedicated subprocess to avoid GIL
-# contention with our tokenize/render work on the main thread.
-os.environ.setdefault("TINKER_SUBPROCESS_SAMPLING", "1")
-
-
-BINARY_VARIANTS = {
-    "yes": ["Yes", "yes", "YES", " Yes", " yes"],
-    "no": ["No", "no", "NO", " No", " no"],
-}
+# Teacher-forced candidates also cover space-prefixed tokenizations of the cased forms.
+CANDIDATE_VARIANTS = {label: (*variants, *(f" {text}" for text in variants[:2])) for label, variants in BINARY_VARIANTS.items()}
 
 
 def _is_invalid_jwt_error(exc: Exception) -> bool:
@@ -120,7 +112,7 @@ class TinkerBackend(Backend):
             self.answer_renderer = self._renderer_factory(
                 self.answer_renderer_name, self.tokenizer, image_processor=None, model_name=self.model_id,
             )
-        self._candidates = {label: self._candidate_token_variants(label) for label in BINARY_VARIANTS}
+        self._candidates = {label: self._candidate_token_variants(label) for label in CANDIDATE_VARIANTS}
 
     async def _with_invalid_jwt_retry(self, coro_factory):
         """Run an async unit; on Invalid JWT, reconnect once and retry the whole unit."""
@@ -135,53 +127,48 @@ class TinkerBackend(Backend):
     def _prompt(self, messages, renderer=None):
         return (renderer or self.renderer).build_generation_prompt(messages)
 
-    def _sampling_params(self, max_tokens: int, temperature: float, thinking_budget: int,
-                         generation_config: GenerationSamplingConfig | None = None):
-        if generation_config is not None:
-            temperature = generation_config.temperature
+    def _sampling_params(self, max_tokens: int, thinking_budget: int, generation_config: GenerationSamplingConfig):
         total_tokens = max_tokens + thinking_budget if self.enable_thinking else max_tokens
-        kwargs = {"max_tokens": total_tokens, "temperature": temperature}
-        if generation_config is not None:
-            kwargs["top_p"] = generation_config.top_p
-            if generation_config.top_k is not None:
-                kwargs["top_k"] = generation_config.top_k
+        kwargs = {"max_tokens": total_tokens, "temperature": generation_config.temperature}
+        for name in ("top_p", "top_k"):
+            if getattr(generation_config, name) is not None:
+                kwargs[name] = getattr(generation_config, name)
         stop = self.renderer.get_stop_sequences()
         if stop:
             kwargs["stop"] = stop
         return self.types.SamplingParams(**kwargs)
 
-    async def _sample_one(self, messages, max_tokens, temperature, thinking_budget,
-                          generation_config=None) -> GenerateResult:
+    async def _sample_one(self, messages, max_tokens, thinking_budget, generation_config) -> GenerateResult:
         async with self.semaphore:
             response = await self.sampling_client.sample_async(
                 prompt=self._prompt(messages),
                 num_samples=1,
-                sampling_params=self._sampling_params(
-                    max_tokens, temperature, thinking_budget, generation_config,
-                ),
+                sampling_params=self._sampling_params(max_tokens, thinking_budget, generation_config),
             )
-        message = _parsed_message(self.renderer, list(response.sequences[0].tokens))
-        return GenerateResult(text="".join(_message_parts(message, "text")).strip())
-
-    async def generate(self, messages, max_tokens=1, temperature=0.0, *,
-                       thinking_budget: int | None = None, generation_config=None,
-                       response_json_schema=None):
-        results = await self.generate_batch(
-            [messages], max_tokens=max_tokens, temperature=temperature,
-            thinking_budget=thinking_budget,
-            generation_config=generation_config,
+        sequence = response.sequences[0]
+        tokens = list(sequence.tokens)
+        message = _parsed_message(self.renderer, tokens)
+        truncated = sequence.stop_reason == "length"
+        return GenerateResult(
+            text="".join(_message_parts(message, "text")).strip(),
+            thinking_tokens=self._thinking_tokens(message, tokens, truncated) if self.enable_thinking else None,
+            truncated=truncated,
         )
-        return results[0]
 
-    async def generate_batch(self, messages_list, max_tokens=1, temperature=0.0,
-                             *, thinking_budget: int | None = None,
-                             generation_config=None, response_json_schema=None, batch_key=None):
+    def _thinking_tokens(self, message: dict, tokens: list[int], truncated: bool) -> int:
+        """Re-encoded length of the parsed thought; a response cut before its thought closed is all thinking."""
+        thoughts = _message_parts(message, "thinking")
+        if thoughts:
+            return len(self.tokenizer.encode("".join(thoughts), add_special_tokens=False))
+        return len(tokens) if truncated else 0
+
+    async def generate(self, messages_list, max_tokens=1,
+                       *, thinking_budget: int | None = None,
+                       generation_config=GREEDY, response_json_schema=None, batch_key=None):
         thinking_budget = self._effective_thinking_budget(thinking_budget)
         return await self._with_invalid_jwt_retry(
             lambda: asyncio.gather(*[
-                self._sample_one(
-                    messages, max_tokens, temperature, thinking_budget, generation_config,
-                )
+                self._sample_one(messages, max_tokens, thinking_budget, generation_config)
                 for messages in messages_list
             ])
         )
@@ -189,7 +176,7 @@ class TinkerBackend(Backend):
     def _candidate_token_variants(self, label: str) -> list[list[int]]:
         """Distinct token sequences for one label's surface variants."""
         seen: dict[tuple[int, ...], None] = {}
-        for text in BINARY_VARIANTS[label]:
+        for text in CANDIDATE_VARIANTS[label]:
             tokens = tuple(self.tokenizer.encode(text, add_special_tokens=False))
             if tokens:
                 seen.setdefault(tokens)
@@ -226,17 +213,20 @@ class TinkerBackend(Backend):
                 rows[row_idx][label].append(logprob)
         return assemble_binary_scores([_score_candidate_logprobs(row) for row in rows])
 
-    async def _shared_thinking_message(self, messages: list[dict], thinking_budget: int) -> dict:
+    async def _shared_thinking_message(self, messages: list[dict], thinking_budget: int) -> tuple[dict, dict]:
         async with self.semaphore:
             response = await self.sampling_client.sample_async(
                 prompt=self._prompt(messages),
                 num_samples=1,
-                sampling_params=self._sampling_params(0, 0.0, thinking_budget),
+                sampling_params=self._sampling_params(0, thinking_budget, GREEDY),
             )
-        tokens = list(response.sequences[0].tokens)
+        sequence = response.sequences[0]
+        tokens = list(sequence.tokens)
         thoughts = _message_parts(_parsed_message(self.renderer, tokens), "thinking")
         thinking_text = "\n".join(thoughts).strip() if thoughts else str(self.tokenizer.decode(tokens)).strip()
-        return {"role": "assistant", "content": text_thinking_protocol().format_block(thinking_text)}
+        # A thought cut at the budget is closed by format_block.
+        record = GenerateResult("", thinking_tokens=len(tokens), forced_close=sequence.stop_reason == "length").thinking_record()
+        return {"role": "assistant", "content": text_thinking_protocol().format_block(thinking_text)}, record
 
     async def _score_binary_after_shared_thinking(
         self,
@@ -255,7 +245,7 @@ class TinkerBackend(Backend):
         messages_list: list[list[dict]],
         *,
         thinking_budget: int | None = None,
-    ) -> tuple[np.ndarray, int]:
+    ) -> tuple[np.ndarray, int, dict]:
         return await self._with_invalid_jwt_retry(
             lambda: super(TinkerBackend, self).score_binary_with_shared_thinking(
                 thinking_messages, messages_list, thinking_budget=thinking_budget,

@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from itertools import product
 
-from configs.backend_registry import HOSTED_OAI_BACKENDS, NO_LOGPROB_BACKENDS, TOGGLE_THINKING_BACKENDS
+from configs.backend_registry import NO_LOGPROB_BACKENDS, TOGGLE_THINKING_BACKENDS, reasoning_enabled, top_logprobs
 from utils import load_yaml
 
 RESULTS_ROOT = os.path.join(os.environ["DATA_DIR"], "number_game", "results") if "DATA_DIR" in os.environ else "results"
@@ -23,7 +23,6 @@ class BackendBinding:
     tokenizer_trust_remote_code: bool = False
     thinking_protocol: str | None = None
     reasoning_effort: str | None = None
-    supports_logprobs: bool = True
     supports_json_schema: bool = False
 
     def effective_batch_size(self, *, enable_thinking: bool) -> int:
@@ -38,6 +37,9 @@ class ModelInfo:
     display: str
     default_backend: str
     backends: dict[str, BackendBinding]
+    summary_color: str | None = None
+    # HYPOTHESIS_GENERATION token fields overridden for this model's thinking runs.
+    thinking_generation_tokens: dict[str, int] | None = None
 
     def binding(self, backend: str) -> BackendBinding:
         if backend not in self.backends:
@@ -60,18 +62,16 @@ class TaskGrid:
 
 @dataclass(frozen=True)
 class ScoringPolicy:
-    """Knobs for scoring and trajectory reconstruction."""
+    """Scoring prefix limit and parse-retry budget."""
     max_examples: int
-    trajectory_prefix_horizon: int
     max_retries: int
 
 
 @dataclass(frozen=True)
 class BayesianConfig:
-    """Bayesian baseline hyperparameters and hypothesis-space construction."""
+    """Bayesian baseline hyperparameters."""
     lam: float
     sigma: float
-    natural_intervals: bool
 
 
 @dataclass(frozen=True)
@@ -79,10 +79,8 @@ class PosteriorConfig:
     method: str
     n_trials: int
     temperature: float
-    thinking_mode: str = "shared_prefix"
-    thinking_budget: int = 512
-    top_logprobs_local: int = 20
-    top_logprobs_openai: int = 5
+    thinking_mode: str
+    thinking_budget: int
 
     def __post_init__(self) -> None:
         if self.method not in {"logits", "text_trials"}:
@@ -91,31 +89,36 @@ class PosteriorConfig:
             )
         if self.n_trials < 1:
             raise ValueError("POSTERIOR.n_trials must be positive")
+        if self.thinking_mode not in {"shared_prefix", "per_target"}:
+            raise ValueError(f"Unknown POSTERIOR.thinking_mode: {self.thinking_mode!r}")
 
 
 @dataclass(frozen=True)
 class HypothesisEvalConfig:
     max_tokens: int
-    thinking_budget: int = 1024
+    thinking_budget: int
 
 
 @dataclass(frozen=True)
 class GenerationSamplingConfig:
-    """Decoder sampling parameters for free hypothesis generation."""
+    """Decoder sampling parameters; backends send only the fields that are set."""
     temperature: float
-    top_p: float
+    top_p: float | None = None
     top_k: int | None = None
     min_p: float | None = None
     presence_penalty: float | None = None
     repetition_penalty: float | None = None
 
 
+GREEDY = GenerationSamplingConfig(temperature=0.0)
+
+
 @dataclass(frozen=True)
 class HypothesisGenerationConfig:
     max_tokens: int
     n_hypotheses: int
-    thinking_budget: int = 2048
-    sampling: GenerationSamplingConfig | None = None
+    thinking_budget: int
+    sampling: GenerationSamplingConfig
 
 
 @dataclass(frozen=True)
@@ -132,45 +135,40 @@ class BackendConfig:
     top_logprobs: int
     result_key: str
     model_info: ModelInfo
-    execution: str = "online"
+
+    @property
+    def reasoning(self) -> bool:
+        return reasoning_enabled(self.reasoning_effort)
 
     @property
     def thinking(self) -> bool:
-        return self.enable_thinking or self.reasoning_effort not in (None, "none")
+        return self.enable_thinking or self.reasoning
 
     @property
     def supports_logprobs(self) -> bool:
         # Hosted reasoning endpoints reject logprobs.
-        reasoning = self.reasoning_effort not in (None, "none")
-        return self.binding.supports_logprobs and self.backend not in NO_LOGPROB_BACKENDS and not reasoning
+        return self.backend not in NO_LOGPROB_BACKENDS and not self.reasoning
 
 
 ModeConfig = PosteriorConfig | HypothesisEvalConfig | HypothesisGenerationConfig
-RunConditionPattern = tuple[str, str, str]
-RUN_PROFILE_NAMES = ("full", "mini")
+RUN_PROFILES = ("full", "mini")
 EVAL_MODES = ("posterior", "hypothesis_eval", "hypothesis_generation")
+# Result-key suffix of runs whose results are thinking results.
+THINKING_SUFFIX = "_thinking"
 
+# hypothesis_eval rates a supplied candidate list (explicit); hypothesis_generation
+# measures free proposal (implicit). Task-level h_spaces sweep only posterior.
+HYPOTHESIS_H_SPACE = {"hypothesis_eval": "explicit", "hypothesis_generation": "implicit"}
 
-@dataclass(frozen=True)
-class RunProfile:
-    """Scoring schedule over canonical experiment conditions."""
-    condition_keys: frozenset[RunConditionPattern] | None = None
-
-    def __post_init__(self) -> None:
-        if self.condition_keys is not None and not self.condition_keys:
-            raise ValueError("The mini run profile must include at least one condition")
-
-    @property
-    def name(self) -> str:
-        return "full" if self.condition_keys is None else "mini"
-
-    def includes(self, condition: "ExperimentCondition") -> bool:
-        if self.condition_keys is None:
-            return True
-        return (condition.eval_mode, condition.h_space, condition.sampling) in self.condition_keys
-
-
-FULL_RUN_PROFILE = RunProfile()
+# Cross-model summaries compare these posterior prompts (h_space, sampling) and
+# these per-mode conditions (eval_mode, h_space, sampling); the mini run profile
+# scores exactly their union.
+SUMMARY_PROMPTS = (("implicit", "default"), ("explicit", "default"), ("implicit", "strong"), ("implicit", "weak"))
+SUMMARY_MODE_CONDITIONS = (
+    ("posterior", "implicit", "default"),
+    *((eval_mode, h_space, "default") for eval_mode, h_space in HYPOTHESIS_H_SPACE.items()),
+)
+MINI_CONDITIONS = frozenset({("posterior", *prompt) for prompt in SUMMARY_PROMPTS} | set(SUMMARY_MODE_CONDITIONS))
 
 
 def _load_models() -> dict[str, ModelInfo]:
@@ -182,6 +180,8 @@ def _load_models() -> dict[str, ModelInfo]:
             display=entry["display"],
             default_backend=entry["default_backend"],
             backends={name: BackendBinding(**(kwargs or {})) for name, kwargs in entry["backends"].items()},
+            summary_color=entry.get("summary_color"),
+            thinking_generation_tokens=entry.get("thinking_generation_tokens"),
         )
         for alias, entry in raw.items()
     }
@@ -197,12 +197,17 @@ for _alias, _info in MODELS.items():
         _ALIAS_MAP[_key.lower()] = _alias
 
 
-BASELINE_MODEL = "bayesian"
+# Result keys of the model-agnostic reference producers; `--model bayesian` builds both.
+BAYESIAN = "bayesian"
+HUMAN = "human"
+
+# Draw figures under per-LLM result trees (results/{model}/...). They are rebuildable from that model's caches; summary/, bayesian/, and human/ figures are always drawn.
+PLOT_MODEL_FIGURES = False
 
 
 def is_baseline_run(model_name: str | None) -> bool:
     """True when the selected model is the Bayesian/human baseline sentinel, not an LLM."""
-    return model_name is not None and model_name.lower() == BASELINE_MODEL
+    return model_name is not None and model_name.lower() == BAYESIAN
 
 
 def resolve_model(name: str) -> ModelInfo:
@@ -219,14 +224,13 @@ def resolve_backend_config(
     model_info: ModelInfo,
     backend: str | None,
     thinking_settings: dict,
-    posterior: PosteriorConfig,
     thinking: bool = False,
 ) -> BackendConfig:
     """Resolve runtime knobs for one selected (model, backend) pair; `thinking` is the CLI flag."""
     backend = backend or model_info.default_backend
     binding = model_info.binding(backend)
 
-    enable_thinking = backend in TOGGLE_THINKING_BACKENDS and (thinking or thinking_settings.get("enable", False))
+    enable_thinking = backend in TOGGLE_THINKING_BACKENDS and thinking
     # OpenAI reasoning is selected at runtime. OpenRouter bindings may instead pin
     # a provider-normalized effort for models whose reasoning mode is mandatory.
     if backend == "openai":
@@ -235,19 +239,17 @@ def resolve_backend_config(
         reasoning_effort = binding.reasoning_effort
     else:
         reasoning_effort = None
-    # Only runtime-selected thinking changes the result namespace; pinned efforts
-    # are part of the model binding itself.
-    runtime_thinking = enable_thinking or (backend == "openai" and reasoning_effort != "none")
-    top_logprobs = posterior.top_logprobs_openai if backend in HOSTED_OAI_BACKENDS else posterior.top_logprobs_local
+    # Only runtime-selected thinking changes the result namespace; pinned
+    # OpenRouter efforts are part of the model binding itself.
+    runtime_thinking = enable_thinking or (backend == "openai" and reasoning_enabled(reasoning_effort))
 
     return BackendConfig(
         backend=backend,
         binding=binding,
         enable_thinking=enable_thinking,
         reasoning_effort=reasoning_effort,
-        top_logprobs=top_logprobs,
-        result_key=model_info.display + ("_thinking" if runtime_thinking else ""),
-        execution=binding.execution,
+        top_logprobs=top_logprobs(backend),
+        result_key=model_info.display + (THINKING_SUFFIX if runtime_thinking else ""),
         model_info=model_info,
     )
 
@@ -269,7 +271,7 @@ def load_generation_sampling(model_id: str, enable_thinking: bool) -> Generation
 class ExperimentCondition:
     """One task/domain/eval-mode/prompt combination; the model selects its result root.
 
-    Conditions with the same prompt_key form a prompt group and share a directory.
+    Conditions with the same prompt_group share one result directory.
     """
     task: str       # "Tenenbaum99" | "Bigelow16"
     eval_mode: str  # "posterior" | "hypothesis_eval" | "hypothesis_generation"
@@ -284,7 +286,7 @@ class ExperimentCondition:
         return self.task, self.domain
 
     @property
-    def prompt_key(self) -> tuple[str, int, str, str]:
+    def prompt_group(self) -> tuple[str, int, str, str]:
         """Groups conditions sharing one task/domain/prompt directory."""
         return self.task, self.domain, self.h_space, self.sampling
 
@@ -302,18 +304,8 @@ class ExperimentCondition:
 
 
 def h_space_levels_for_eval(eval_mode: str, configured_h_spaces: list[str]) -> list[str]:
-    """Return the h-space levels owned by one eval mode.
-
-    Task-level h_spaces are the posterior prompt-framing sweep. hypothesis_eval
-    is explicit because it rates a supplied candidate list; hypothesis_generation
-    is implicit because it measures free hypothesis proposal.
-    """
-    if eval_mode == "posterior":
-        return list(configured_h_spaces)
-    return {
-        "hypothesis_eval": ["explicit"],
-        "hypothesis_generation": ["implicit"],
-    }[eval_mode]
+    """Return the h-space levels owned by one eval mode."""
+    return list(configured_h_spaces) if eval_mode == "posterior" else [HYPOTHESIS_H_SPACE[eval_mode]]
 
 
 @dataclass(frozen=True)
@@ -330,15 +322,13 @@ class Experiment:
     seed: int
     overwrite: bool
     concurrency: int
-    run_profile: RunProfile = FULL_RUN_PROFILE
+    run_profile: str = "full"  # one of RUN_PROFILES
 
 
 def make_grid(experiment: Experiment) -> list[ExperimentCondition]:
     """Build the experiment grid from the per-task factors in `experiment`.
 
-    Each task has its own eval_modes, posterior h_spaces, samplings, and
-    domains. hypothesis_eval is explicit-only; hypothesis_generation is
-    implicit-only. To grid a modified task set, pass a replace()'d experiment.
+    To grid a modified task set, pass a replace()'d experiment.
     """
     conditions = []
     for task_name, factors in experiment.tasks.items():

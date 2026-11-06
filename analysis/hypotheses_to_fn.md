@@ -5,11 +5,9 @@ description: Cast on a Tenenbaum99 results root (e.g., `results/<model>/Tenenbau
 
 # Hypotheses To Executable Predicates
 
-Cast on `results/<model>/Tenenbaum99`.
-The skill enumerates every `d{domain}/<prompt_condition>/data/hypothesis_generation.json` under that root, classifies each generated hypothesis, registers precise ones as Python predicates in a per-domain library, and writes a structured JSON next to every raw file.
+Cast on `results/<model>/Tenenbaum99`. The skill enumerates every `d{domain}/<prompt_condition>/data/hypothesis_generation.json` under that root, classifies each generated hypothesis, registers precise ones as Python predicates in a per-domain library, and writes a structured JSON next to every raw file.
 
-Goal: conservative extraction.
-Only precise hypotheses become executable; vague text becomes `"other"`.
+Goal: conservative extraction. Only precise hypotheses become executable; vague text becomes `"other"`.
 
 ## Workflow
 
@@ -17,18 +15,13 @@ Main-agent procedure when cast on `results/<model>/Tenenbaum99`:
 
 1. Enumerate domain roots (`d100`, `d200`, …) under the cast target.
 2. For each domain, enumerate implicit prompt conditions (e.g., `implicit_default`, `implicit_adversarial`) and locate every `data/hypothesis_generation.json`.
-3. Read the current `library/library_d{domain}.py`.
-   Create it from the skeleton in **Library Contract** if it does not exist.
-4. Dispatch **one subagent per `d{domain}/<prompt_condition>` shard** in parallel (across domains too).
-   Brief each subagent with: domain size, domain root, prompt condition name, the full current `library/library_d{domain}.py`, and the raw payload(s) for that shard.
-   Point them at this skill and require the marker-separated output of the **Output Contract**.
+3. Read the current `library/library_d{domain}.py`. Create it from the skeleton in **Library Contract** if it does not exist.
+4. Dispatch **one subagent per `d{domain}/<prompt_condition>` shard** in parallel (across domains too). Brief each subagent with: domain size, domain root, prompt condition name, the full current `library/library_d{domain}.py`, and the raw payload(s) for that shard. Point them at this skill and require the marker-separated output of the **Output Contract**.
 5. Merge per domain: collect all proposals for `d{domain}`, deduplicate new predicates by behavior signature on `1..{domain}` against the existing library and across the batch, assign final indices using the smallest unused non-negative integers, and write the reconciled `library/library_d{domain}.py`.
 6. Write each `hypothesis_generation_structured.json` next to its raw input using the **final** indices.
 7. Report per domain: number of new functions added, number of structured JSONs written, and any borderline `"other"` classifications worth spot-checking.
 
-Subagents only **propose**.
-The main agent owns final merge and index assignment — parallel writes to the same library file would collide.
-Domains are independent and can run fully in parallel.
+Subagents only **propose**. The main agent owns final merge and index assignment — parallel writes to the same library file would collide. Domains are independent and can run fully in parallel.
 
 ## Library Location
 
@@ -39,8 +32,7 @@ repo_root/library/library_d100.py
 repo_root/library/library_d200.py
 ```
 
-Every prompt condition under `d{domain}` reads and extends the same file.
-Reuse existing functions whenever the finite-domain behavior signature matches; add a new function only when no existing function matches.
+Every prompt condition under `d{domain}` reads and extends the same file. Reuse existing functions whenever the finite-domain behavior signature matches; add a new function only when no existing function matches.
 
 ## Subagent Prompt Template
 
@@ -63,8 +55,7 @@ Inputs:
   {raw_hypothesis_generation_payloads}
   ```
 
-Return marker-separated text only — no markdown fences.
-Use your best-effort indices; the main agent will reconcile across all subagents for the domain.
+Return marker-separated text only — no markdown fences. Use your best-effort indices; the main agent will reconcile across all subagents for the domain.
 
 ## Output Contract
 
@@ -79,8 +70,7 @@ Use your best-effort indices; the main agent will reconcile across all subagents
 <structured JSON content>
 ```
 
-Each structured JSON is written next to its raw `hypothesis_generation.json`.
-It preserves the raw structure and all original fields, and adds:
+Each structured JSON is written next to its raw `hypothesis_generation.json`. It preserves the raw structure and all original fields, and adds:
 
 - `type`: `"rule"`, `"interval"`, or `"other"` for every hypothesis.
 - `index`: only for `"rule"` or `"interval"`. Never on `"other"`.
@@ -116,13 +106,11 @@ def fn_0000(xs: list[int]) -> bool:
 
 `all(...)` over `xs` makes `fn([n])` equivalent to membership for `n`.
 
-Use only: `all(...)`, interval bounds, set membership, integer arithmetic, boolean combinations, and `math.isqrt` when needed.
-No I/O, network, randomness, or extra imports.
+Use only: `all(...)`, interval bounds, set membership, integer arithmetic, boolean combinations, and `math.isqrt` when needed. No I/O, network, randomness, or extra imports.
 
 Predicates encode the hypothesis itself; do not add domain clamping like `x <= 100`.
 
-Do not store `type`, `note`, `source`, or `derived_from` in `LIBRARY`.
-The description belongs in the docstring; `type` belongs in structured JSON.
+Do not store `type`, `note`, `source`, or `derived_from` in `LIBRARY`. The description belongs in the docstring; `type` belongs in structured JSON.
 
 ## Index Rules
 
@@ -149,8 +137,7 @@ def signature(fn, domain):
     return tuple(fn([x]) for x in range(1, domain + 1))
 ```
 
-Before adding a function, compare its signature against all existing library functions and all functions newly added in this same merge.
-If signatures match, reuse the existing or earlier index.
+Before adding a function, compare its signature against all existing library functions and all functions newly added in this same merge. If signatures match, reuse the existing or earlier index.
 
 Examples that share one index on the active domain:
 
@@ -158,9 +145,7 @@ Examples that share one index on the active domain:
 - `"numbers from 16 to 16"` and `"the number 16"`
 - `"x > 50"` and `"numbers from 51 to DOMAIN"`
 
-When multiple raw entries in the same shard have the same signature, keep each raw entry in the structured JSON but assign them the same `index`.
-Any later projection must collapse rows by `index` before turning confidence into support-vector mass; do not double-count duplicate raw phrasings.
-A conservative default is keeping the maximum confidence per `index` per shard.
+When multiple raw entries in the same shard have the same signature, keep each raw entry in the structured JSON but assign them the same `index`. Any later projection must collapse rows by `index` before turning confidence into support-vector mass; do not double-count duplicate raw phrasings. A conservative default is keeping the maximum confidence per `index` per shard.
 
 If a candidate predicate has an empty extension on `1..DOMAIN`, mark it `"other"` and do not add a function.
 

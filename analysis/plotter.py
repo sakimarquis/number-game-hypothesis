@@ -8,6 +8,8 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 from analysis.alpha_beta_scope import FIT_SCOPE_ORDER
+from configs.settings import BAYESIAN, HUMAN, MODELS, PLOT_MODEL_FIGURES, RESULTS_ROOT
+from utils import resolve_path
 
 PLOT_PARAMS = {"dpi": 300, "bbox_inches": "tight", "pad_inches": 0.1}
 
@@ -18,7 +20,7 @@ CYCLE = list(PALETTE.values())
 
 # Semantic aliases — aliases share hex on purpose (visual vocabulary across roles:
 # blue=primary/reference, orange=contrast, green=agreement, red=likelihood, purple=accent).
-C_BAYESIAN = C_RULE = C_ALPHA = PALETTE["blue"]
+C_BAYESIAN = C_RULE = PALETTE["blue"]
 C_LLM      = C_INTERVAL = C_BETA = PALETTE["orange"]
 C_HUMAN    = C_PRIOR = PALETTE["green"]
 C_LIKELIHOOD = PALETTE["red"]
@@ -31,24 +33,9 @@ BASELINE_OVERLAY_STYLES = {
     "Human": {"color": C_HUMAN, "ls": "-.", "lw": 1.0},
 }
 
-ALPHA_BETA_RATIO_FLOOR = 0.05
 
-SUMMARY_MODEL_ORDER = (
-    "Gemma4_A4B", "Gemma4_E4B", "Gemma4_E2B",
-    "Qwen36_A3B", "Qwen35_4B", "Qwen35_2B",
-    "GPT54_Mini",
-    "Nemotron3_Nano",
-)
-MODEL_COLORS = {
-    "GPT54_Mini": PALETTE["green"],
-    "Gemma4_A4B": "#7e0610",
-    "Gemma4_E4B": "#e83429",
-    "Gemma4_E2B": "#fc9b7c",
-    "Qwen36_A3B": "#083c7d",
-    "Qwen35_4B": "#3b8bc2",
-    "Qwen35_2B": "#a6cee4",
-    "Nemotron3_Nano": "#fde724",
-}
+MODEL_COLORS = {info.display: info.summary_color for info in MODELS.values() if info.summary_color}
+SUMMARY_MODEL_ORDER = tuple(MODEL_COLORS)
 
 # Display vocabulary for the three evaluation modes; artifacts keep eval_mode keys.
 EVAL_MODE_LABELS = {"posterior": "Predict", "hypothesis_eval": "Eval", "hypothesis_generation": "Generate"}
@@ -56,12 +43,13 @@ EVAL_MODE_COLORS = {"posterior": PALETTE["green"], "hypothesis_eval": PALETTE["b
 
 KIND_ORDER = ("rule", "similarity", "single", "other")
 KIND_DISPLAY = {"similarity": "sim"}
-PROMPT_ORDER = ("strong explicit", "strong implicit", "weak explicit", "weak implicit")
+# Keyed by `{h_space}_{sampling}`, the same prompt key as ExperimentCondition.prompt.
+PROMPT_ORDER = ("explicit_strong", "implicit_strong", "explicit_weak", "implicit_weak")
 PROMPT_PALETTE = {
-    "strong explicit": C_LIKELIHOOD,
-    "strong implicit": "darkorange",
-    "weak explicit": "navy",
-    "weak implicit": "#4169E1",
+    "explicit_strong": C_LIKELIHOOD,
+    "implicit_strong": "darkorange",
+    "explicit_weak": "navy",
+    "implicit_weak": "#4169E1",
 }
 def ordered_stimulus_kinds(kinds, all_label: str | None = None) -> list[str]:
     """Return stimulus-kind labels in the shared analysis order."""
@@ -79,14 +67,18 @@ def with_all_kinds(df):
 
 
 def filter_canonical_prompts(df):
-    """Keep the canonical strong/weak x explicit/implicit prompt subset."""
-    return df[df["sampling"].isin(["strong", "weak"])
-              & df["h_space"].isin(["explicit", "implicit"])].copy()
+    """Keep the canonical PROMPT_ORDER prompts."""
+    return df[prompt_label(df).isin(PROMPT_ORDER)].copy()
+
+
+def with_task_domain(df: pd.DataFrame) -> pd.DataFrame:
+    """Add the `{task}/d{domain}` group used for equal task-domain weighting."""
+    return df.assign(task_domain=df["task"] + "/d" + df["domain"].astype(str))
 
 
 def prompt_label(df: pd.DataFrame) -> pd.Series:
-    """Canonical prompt label used by shared prompt-kind bar plots."""
-    return df["sampling"] + " " + df["h_space"]
+    """Per-row prompt key `{h_space}_{sampling}`, matching ExperimentCondition.prompt."""
+    return df["h_space"] + "_" + df["sampling"]
 
 
 def set_mpl(size=10):
@@ -118,6 +110,9 @@ def set_mpl(size=10):
 
 def save_fig(fig, path, *, tight_layout: bool = True, dpi: int | None = None):
     """Save and close a figure, applying tight layout unless layout is manual."""
+    if not PLOT_MODEL_FIGURES and _is_model_figure(path):
+        plt.close(fig)
+        return
     if tight_layout:
         fig.tight_layout()
     save_kwargs = dict(PLOT_PARAMS)
@@ -126,6 +121,13 @@ def save_fig(fig, path, *, tight_layout: bool = True, dpi: int | None = None):
     fig.savefig(path, **save_kwargs)
     plt.close(fig)
     print(f"  Saved: {path}")
+
+
+def _is_model_figure(path: str) -> bool:
+    """True for paths inside an LLM's results/{model}/ tree."""
+    root = os.path.abspath(resolve_path(RESULTS_ROOT)) + os.sep
+    path = os.path.abspath(path)
+    return path.startswith(root) and path[len(root):].split(os.sep)[0] not in {"summary", BAYESIAN, HUMAN}
 
 
 def save_csv(rows, output_dir: str, name: str) -> pd.DataFrame:
@@ -303,7 +305,7 @@ def plot_prompt_fit_scope_bar(
 
 
 LINE_ALPHA = 0.9
-ERRBAR_ALPHA = 0.2
+ERRBAR_ALPHA = 0.25
 
 
 def _apply_errbar_alpha(container, line_alpha=LINE_ALPHA, err_alpha=ERRBAR_ALPHA):
@@ -347,30 +349,15 @@ def task_domain_series(df: pd.DataFrame, metric: str, x_col: str = "n_examples")
     return aggregate_sem({int(k): v for k, v in by_x.items()})
 
 
-def alpha_beta_ratio(alpha, beta, floor: float = ALPHA_BETA_RATIO_FLOOR):
-    alpha = np.maximum(np.asarray(alpha, dtype=float), floor)
-    beta = np.maximum(np.asarray(beta, dtype=float), floor)
-    ratio = alpha / beta
-    return float(ratio) if np.ndim(ratio) == 0 else ratio
-
-
-def log_positive_ratio(values):
-    """Log-transform positive ratios; non-positive values are undefined."""
-    logged = pd.to_numeric(pd.Series(values), errors="coerce")
-    positive = logged > 0
-    logged.loc[positive] = np.log(logged.loc[positive])
-    logged.loc[~positive] = np.nan
-    return logged
-
-
 def plot_trajectory_sem(series, output_path, xlabel="Number of examples", ylabel="",
-                        title=None, hline=None, figsize=(2.2, 2),
+                        title=None, hline=None, figsize=(2.15, 2),
                         xticks=None, yticks=None, show_errorbar=True, hline_color="gray",
                         legend_fontsize=6, legend_ncol=1,
-                        legend_bbox_to_anchor=(1.02, 0.5)):
+                        legend_bbox_to_anchor=(1.02, 0.5), legend_groups=None):
     """Line trajectories, optionally with mean ± SEM error bars.
 
     series: list of {"x", "y", "y_err", "label", "color"}.
+    legend_groups: optional handle lists drawn as stacked external legends in place of the series labels.
     Lines draw at LINE_ALPHA; optional error bars draw at ERRBAR_ALPHA.
     External legends are saved outside the fixed main axes by expanding the export bbox.
     """
@@ -404,12 +391,30 @@ def plot_trajectory_sem(series, output_path, xlabel="Number of examples", ylabel
         ax.set_yticks(yticks)
     if title:
         ax.set_title(title)
-    has_legend = any(s.get("label") for s in series)
-    if has_legend:
+    has_legend = bool(legend_groups) or any(s.get("label") for s in series)
+    if legend_groups:
+        x, y = legend_bbox_to_anchor
+        # Figure legends, unlike extra axes legends, count toward the tight export bbox.
+        # Stack the groups top-down from each legend's measured height, so a long model list
+        # never overlaps the line-style group below it.
+        renderer = fig.canvas.get_renderer()
+        gap = 0.06
+        legends = [
+            fig.legend(handles=handles, fontsize=legend_fontsize, loc="upper left",
+                       bbox_transform=ax.transAxes, frameon=False, bbox_to_anchor=(x, 1.0))
+            for handles in legend_groups
+        ]
+        heights = [ax.transAxes.inverted().transform_bbox(leg.get_window_extent(renderer)).height for leg in legends]
+        top = y + (sum(heights) + gap * (len(legends) - 1)) / 2.0
+        for leg, height in zip(legends, heights):
+            leg.set_bbox_to_anchor((x, top), transform=ax.transAxes)
+            top -= height + gap
+    elif has_legend:
         ax.legend(
             fontsize=legend_fontsize,
             ncol=legend_ncol,
             loc="center left",
             bbox_to_anchor=legend_bbox_to_anchor,
+            frameon=False,
         )
     save_fig(fig, output_path, tight_layout=not has_legend)

@@ -1,9 +1,9 @@
 """Bayesian baseline orchestration: Bayesian + Human reference artifacts.
 
 Run by `run_number_game.py --model bayesian`. Produces the model-level overlay
-CSVs (alpha_beta_fits, divergence_metrics, effective_support), the Tenenbaum99
+CSVs (alpha_beta_fits, divergence_metrics, prompt_effective_support), the Tenenbaum99
 d200 extension references, human description top-1 metrics, stimulus-level
-Bayesian decomposition plots, and human α-β fits, so LLM-side analyses and the
+Bayesian decomposition plots, and human size-principle fits, so LLM-side analyses and the
 cross-model summary read them as references without special-casing.
 """
 
@@ -16,49 +16,39 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from analysis.alpha_beta_scope import (
-    ALPHA_BETA_COLUMNS, FULL_SCOPE, PREFIX_LENGTHS, alpha_beta_row, scope_label, task_group_label,
+    ALPHA_BETA_COLUMNS, FULL_SCOPE, PREFIX_LENGTHS, alpha_beta_row, scope_label, stimulus_row, task_group_label,
 )
-from analysis.cache import build_bayesian, build_human_analysis
+from analysis.cache import bayesian_baseline
 from analysis.extension import write_bayesian_extension_tables
-from analysis.hypothesis_space import load_hypothesis_library
-from analysis.metrics import safe_correlation, kl_divergence
-from analysis.model import fit_alpha_beta
+from analysis.hypothesis_structuring import load_hypothesis_library
+from analysis.metrics import kl_divergence, rated_targets, safe_correlation, shannon_entropy
+from analysis.model import fit_beta, fit_beta_with_ablations
 from analysis.plotter import C_ACCENT, C_HUMAN, C_INTERVAL, C_RULE, save_csv, save_fig, set_mpl
-from analysis.posterior import plot_alpha_beta_all, plot_bayesian_decompositions
-from analysis.size_principle import compute_effective_support
+from analysis.prior_pooling import pooled_prior, pooled_priors
+from analysis.condition_plots import plot_alpha_beta_all, plot_bayesian_decompositions
+from analysis.trajectory import clip_to_prefix_horizon, compute_effective_support
 from configs.layout import analysis_dir, bayesian_cache_dir, human_analysis_dir
-from configs.settings import make_grid
-from tasks.stimuli import HUMAN_NATIVE_DOMAIN
+from configs.settings import BAYESIAN, HUMAN, make_grid
+from tasks.stimuli import BASE_DOMAIN, bigelow_stimulus
 from utils import PROJECT_ROOT
 
-BAYESIAN = "bayesian"
-HUMAN = "human"
 HUMAN_DESCRIPTION_CSV = os.path.join(PROJECT_ROOT, "dataset", "set_descriptions_typed.csv")
 HUMAN_DESCRIPTION_TYPES = ("rule", "interval", "dk", "other")
 HUMAN_DESCRIPTION_TYPE_COLORS = {"rule": C_RULE, "interval": C_INTERVAL, "dk": C_ACCENT, "other": C_HUMAN}
 _BASE_COLUMNS = ["task", "stimulus", "stimulus_kind", "domain", "h_space", "sampling"]
+# Reference tables share the LLM stage file names so overlays read them without special-casing.
 BASELINE_COLUMNS = {
     "alpha_beta_fits.csv": ALPHA_BETA_COLUMNS,
-    "divergence_metrics.csv": _BASE_COLUMNS + ["eval_mode", "kl_bayes", "correlation"],
-    "effective_support.csv": _BASE_COLUMNS + ["effective_support"],
+    "divergence_metrics.csv": _BASE_COLUMNS + ["eval_mode", "kl_bayes", "correlation", "entropy"],
+    "prompt_effective_support.csv": _BASE_COLUMNS + ["effective_support"],
 }
 
 
-def _row_base(task: str, stimulus, domain: int) -> dict:
-    return {
-        "task": task,
-        "stimulus": stimulus.name,
-        "stimulus_kind": stimulus.kind,
-        "domain": domain,
-        "h_space": "",
-        "sampling": "",
-    }
-
-
 def _alpha_beta_scope_counts(stimuli) -> list[tuple[str, int | None, int]]:
-    """Fit scopes shared by baseline and LLM aggregate alpha-beta rows."""
+    """Fit scopes shared by baseline and LLM aggregate size-principle rows; prefix scopes use the trajectory-horizon stimuli."""
+    horizon_stimuli, _ = clip_to_prefix_horizon(stimuli, {})
     rows = [
-        (scope_label(n), n, sum(len(stimulus.examples) >= n for stimulus in stimuli))
+        (scope_label(n), n, sum(len(stimulus.examples) >= n for stimulus in horizon_stimuli))
         for n in PREFIX_LENGTHS
     ]
     rows.append((scope_label(None), None, len(stimuli)))
@@ -66,22 +56,24 @@ def _alpha_beta_scope_counts(stimuli) -> list[tuple[str, int | None, int]]:
 
 
 def human_divergence_rows(task_data, task: str, domain: int, bay_preds: dict) -> list[dict]:
-    """Human posterior KL and Pearson correlation against Bayesian predictions."""
+    """Human posterior KL and Pearson correlation against Bayesian predictions, plus entropy of dense ratings."""
     rows = []
     for stimulus in task_data.stimuli:
         if stimulus.name not in task_data.human_preds:
             continue
         human = np.asarray(task_data.human_preds[stimulus.name], dtype=float)
         bayes = np.asarray(bay_preds[stimulus.name], dtype=float)
-        mask = ~np.isnan(human)
-        if mask.sum() < 2:
+        mask = rated_targets(human)
+        if mask is None:
             continue
         h, b = human[mask], bayes[mask]
         rows.append({
-            **_row_base(task, stimulus, domain),
+            **stimulus_row(task, stimulus, domain),
             "eval_mode": "posterior",
             "kl_bayes": kl_divergence(b, h),
             "correlation": safe_correlation(b, h),
+            # Entropy over a sparse subset of targets is not comparable to model entropy over the domain.
+            "entropy": shannon_entropy(human, empty=0.0) if mask.all() else float("nan"),
         })
     return rows
 
@@ -93,35 +85,35 @@ def human_effective_support_rows(task_data, task: str, domain: int) -> list[dict
         human = task_data.human_preds.get(stimulus.name)
         if human is None or np.isnan(human).any():
             continue
-        rows.append({**_row_base(task, stimulus, domain), "effective_support": int(compute_effective_support(human))})
+        rows.append({**stimulus_row(task, stimulus, domain), "effective_support": int(compute_effective_support(human))})
     return rows
 
 
 def human_description_top1_rows(descriptions: pd.DataFrame) -> pd.DataFrame:
     """Executable top-1 metrics for subject-written Bigelow descriptions.
 
-    Support and evidence accuracy are defined only for rows mapped to a d100
-    library predicate (`library_fn` = fn_NNNN); rule proportion uses every typed row.
+    Hypothesis size and evidence accuracy are defined only for rows mapped to a d100
+    library predicate (`library_fn` = fn_NNNN); rule preference uses every typed row.
     """
-    library = load_hypothesis_library(HUMAN_NATIVE_DOMAIN)
+    library = load_hypothesis_library(BASE_DOMAIN)
     rows = descriptions.dropna(subset=["set", "type"]).copy()
-    rows["n_examples"] = rows["set"].astype(str).str.split("_ ").map(len)
-    rows["rule_proportion"] = rows["type"].eq("rule").astype(float)
-    support_fraction, accuracy = [], []
+    rows["n_examples"] = rows["set"].map(lambda s: len(bigelow_stimulus(s)[1]))
+    rows["rule_preference"] = rows["type"].eq("rule").astype(float)
+    hypothesis_size, accuracy = [], []
     for row in rows.itertuples(index=False):
         if not isinstance(row.library_fn, str) or not row.library_fn:
-            support_fraction.append(np.nan)
+            hypothesis_size.append(np.nan)
             accuracy.append(np.nan)
             continue
         support = library.vectors[int(row.library_fn.removeprefix("fn_"))] > 0
-        examples = np.asarray([int(x) for x in str(row.set).split("_ ")], dtype=int) - 1
-        support_fraction.append(float(support.mean()))
+        examples = np.asarray(bigelow_stimulus(row.set)[1]) - 1
+        hypothesis_size.append(float(support.mean()))
         accuracy.append(float(support[examples].all()))
-    rows["support_fraction"] = support_fraction
+    rows["hypothesis_size"] = hypothesis_size
     rows["accuracy"] = accuracy
-    rows["domain"] = HUMAN_NATIVE_DOMAIN
+    rows["domain"] = BASE_DOMAIN
     return rows[rows["n_examples"].isin(PREFIX_LENGTHS)][
-        ["set", "type", "domain", "n_examples", "rule_proportion", "support_fraction", "accuracy"]
+        ["set", "type", "domain", "n_examples", "rule_preference", "hypothesis_size", "accuracy"]
     ]
 
 
@@ -129,7 +121,7 @@ def plot_human_description_types_by_n_examples(descriptions: pd.DataFrame, outpu
     """Stack subject-written description type proportions by evidence prefix length."""
     set_mpl(size=8)
     work = descriptions.dropna(subset=["set", "type"]).copy()
-    work["n_examples"] = work["set"].astype(str).str.split("_ ").map(len)
+    work["n_examples"] = work["set"].map(lambda s: len(bigelow_stimulus(s)[1]))
     counts = (
         work[work["n_examples"].isin(PREFIX_LENGTHS)]
         .groupby(["n_examples", "type"])
@@ -171,22 +163,24 @@ def run_bayesian_baselines(experiment, baselines: dict) -> dict[str, str]:
     for (task, domain), baseline in baselines.items():
         task_data = baseline.ctx.task
         for fit_scope, n_examples, n_stimuli in _alpha_beta_scope_counts(task_data.stimuli):
-            bucket = alpha_beta_groups.setdefault((domain, fit_scope, n_examples), {"tasks": [], "n_stimuli": 0})
+            # Like LLM fits, every fit scope pools tasks.
+            key = (domain, fit_scope, n_examples)
+            bucket = alpha_beta_groups.setdefault(key, {"tasks": [], "n_stimuli": 0})
             bucket["tasks"].append(task)
             bucket["n_stimuli"] += n_stimuli
         rows["divergence_metrics.csv"].extend(
-            {**_row_base(task, stimulus, domain), "eval_mode": "posterior", "kl_bayes": 0.0, "correlation": 1.0}
+            {**stimulus_row(task, stimulus, domain), "eval_mode": "posterior", "kl_bayes": 0.0, "correlation": 1.0}
             for stimulus in task_data.stimuli
         )
-        rows["effective_support.csv"].extend(
-            {**_row_base(task, stimulus, domain),
+        rows["prompt_effective_support.csv"].extend(
+            {**stimulus_row(task, stimulus, domain),
              "effective_support": int(compute_effective_support(baseline.predictions[stimulus.name]))}
             for stimulus in task_data.stimuli
         )
     for (domain, fit_scope, n_examples), bucket in alpha_beta_groups.items():
         # The Bayesian baseline is the fixed full-Bayesian reference (α=β=1), not a fit,
         # so loss and goodness-of-fit (r²) are undefined; r²=NaN is dropped downstream.
-        fit = {"best_alpha": 1.0, "best_beta": 1.0, "best_loss": 0.0, "r2": float("nan"), "n_stimuli": bucket["n_stimuli"]}
+        fit = {"alpha": 1.0, "beta": 1.0, "mse": 0.0, "r2": float("nan"), "n_stimuli": bucket["n_stimuli"]}
         rows["alpha_beta_fits.csv"].append(
             alpha_beta_row(task_group_label(bucket["tasks"]), domain, "", "", fit_scope, n_examples, fit)
         )
@@ -195,8 +189,12 @@ def run_bayesian_baselines(experiment, baselines: dict) -> dict[str, str]:
     return paths
 
 
-def run_human_baselines(baselines: dict) -> dict[str, str]:
-    """Human baseline CSVs and description figures under ``results/human/analysis/``."""
+def run_human_baselines(experiment, baselines: dict) -> dict[str, str]:
+    """Human baseline CSVs and description figures under ``results/human/analysis/``.
+
+    Human size-principle fits use the default prompt's pooled prior.
+    """
+    prior = pooled_prior(experiment)
     rows = {name: [] for name in BASELINE_COLUMNS}
     alpha_beta_groups = {}
     for (task, domain), baseline in baselines.items():
@@ -205,11 +203,12 @@ def run_human_baselines(baselines: dict) -> dict[str, str]:
             continue
         bucket = alpha_beta_groups.setdefault(domain, {"tasks": [], "specs": []})
         bucket["tasks"].append(task)
-        bucket["specs"].append((baseline.model, task_data.human_preds, task_data.stimuli))
+        priors = pooled_priors(prior, baseline.model, baseline.ctx.rule_families)
+        bucket["specs"].append((baseline.model, priors, task_data.human_preds, task_data.stimuli))
         rows["divergence_metrics.csv"].extend(human_divergence_rows(task_data, task, domain, baseline.predictions))
-        rows["effective_support.csv"].extend(human_effective_support_rows(task_data, task, domain))
+        rows["prompt_effective_support.csv"].extend(human_effective_support_rows(task_data, task, domain))
     for domain, bucket in alpha_beta_groups.items():
-        fit = fit_alpha_beta(bucket["specs"])
+        fit = {**fit_beta(bucket["specs"]), "alpha": prior["alpha"]}
         rows["alpha_beta_fits.csv"].append(
             alpha_beta_row(task_group_label(bucket["tasks"]), domain, "", "", FULL_SCOPE, None, fit)
         )
@@ -223,12 +222,30 @@ def run_human_baselines(baselines: dict) -> dict[str, str]:
     return paths
 
 
+def build_human_analysis(experiment, baselines: dict) -> dict[tuple[str, int], dict]:
+    """Fit the human size principle with ablations per (task, domain) under the default pooled prior.
+
+    NaN targets (sparse Tenenbaum99 ratings) are masked.
+    """
+    prior = pooled_prior(experiment)
+    fits = {}
+    for (task_name, domain), baseline in baselines.items():
+        task_data = baseline.ctx.task
+        if not task_data.human_preds:
+            continue
+        priors = pooled_priors(prior, baseline.model, baseline.ctx.rule_families)
+        fit = fit_beta_with_ablations(baseline.model, priors, task_data.human_preds, task_data.stimuli)
+        print(f"  [{task_name} d{domain}] Human size-principle fit: β={fit['beta']:.2f} (MSE={fit['mse']:.6f})")
+        fits[(task_name, domain)] = fit
+    return fits
+
+
 def run_baseline_analyses(experiment) -> None:
     """Generate all model-agnostic Bayesian and Human baseline artifacts."""
     conditions = make_grid(experiment)
     print(f"Baseline grid: {len(conditions)} conditions")
     print("\nBuilding Bayesian models...")
-    baselines = build_bayesian(experiment, conditions, recompute=True)
+    baselines = {key: bayesian_baseline(experiment, *key) for key in dict.fromkeys(c.context_key for c in conditions)}
 
     # Bayesian decomposition plots: top hypotheses per stimulus for each (task, domain).
     for (task_name, domain), baseline in baselines.items():
@@ -238,23 +255,22 @@ def run_baseline_analyses(experiment) -> None:
             {c.name: baseline.model.top_hypotheses(c.examples, 15) for c in task_data.stimuli},
             [c.name for c in task_data.stimuli],
             bayesian_cache_dir(task_name, domain),
-            featured=task_data.featured_stimuli,
+            featured=experiment.tasks[task_name].featured_stimuli,
         )
 
-    # Human α-β ablation panels: one set per (task, domain) where human ratings exist.
-    for (task_name, domain), fit in build_human_analysis(baselines).items():
+    # Human size-principle ablation panels: one set per (task, domain) where human ratings exist.
+    for (task_name, domain), fit in build_human_analysis(experiment, baselines).items():
         baseline = baselines[(task_name, domain)]
         human_preds = baseline.ctx.task.human_preds
         plot_alpha_beta_all(
             fit, baseline.predictions, human_preds, [c.name for c in baseline.ctx.task.stimuli if c.name in human_preds],
             os.path.join(human_analysis_dir(task_name, domain), "alpha_beta"),
-            result_key="Human",
         )
 
     print("\nWriting Bayesian baseline CSVs...")
     run_bayesian_baselines(experiment, baselines)
     print("\nWriting Human baseline CSVs...")
-    run_human_baselines(baselines)
+    run_human_baselines(experiment, baselines)
 
 
 def load_baseline_overlay(csv_name: str) -> tuple[pd.DataFrame, pd.DataFrame]:

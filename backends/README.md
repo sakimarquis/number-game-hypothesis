@@ -26,7 +26,7 @@ The runner uses configured `POSTERIOR.method` when logprobs are available and `t
 
 ## Thinking and batching
 
-Each evaluation mode supplies its own `thinking_budget` from [configs/number_game.yml](../configs/number_game.yml). `max_tokens` is the requested answer budget; thinking adds headroom. Direct callers must pass a budget when thinking is enabled. An additive output cap alone does not guarantee that a provider will leave enough tokens for the answer.
+Each evaluation mode supplies its own `thinking_budget` from [configs/number_game.yml](../configs/number_game.yml); a model's `thinking_generation_tokens` in [configs/model_aliases.yml](../configs/model_aliases.yml) overrides the hypothesis-generation budgets for its thinking runs. `max_tokens` is the requested answer budget; thinking adds headroom. Direct callers must pass a budget when thinking is enabled. An additive output cap alone does not guarantee that a provider will leave enough tokens for the answer.
 
 | Path | Budget behavior |
 | --- | --- |
@@ -35,9 +35,9 @@ Each evaluation mode supplies its own `thinking_budget` from [configs/number_gam
 | Local channel protocol | One combined stream; the serving reasoning parser separates channels. |
 | OpenAI / OpenRouter | Provider-managed reasoning; OpenRouter adjusts the total using its effort allocation policy. |
 | Gemini | `MINIMAL` without `--thinking`, `MEDIUM` with it; MEDIUM reserves at least 2048 thinking tokens, but allocation remains provider-controlled. |
-| Tinker | Additive total budget without forced thinking closure. |
+| Tinker | Additive total budget without forced thinking closure; a thought that reaches the cap leaves an empty answer. |
 
-HF derives thinking boundaries from the tokenizer. Local bindings explicitly declare `thinking_protocol: text` or `channel`; the client does not infer this from a model name. Tinker remote tokenizer code is enabled only by the binding's `tokenizer_trust_remote_code` setting.
+HF derives thinking boundaries from the tokenizer. Local bindings explicitly declare `thinking_protocol: text` or `channel`; the client does not infer this from a model name. Tinker remote tokenizer code is enabled only by the binding's `tokenizer_trust_remote_code` setting. Tinker sampling accepts only `temperature`, `top_p`, and `top_k`; configured `min_p`, `presence_penalty`, and `repetition_penalty` are not applied.
 
 For logits with thinking, `POSTERIOR.thinking_mode: shared_prefix` reasons once per evidence prefix and reuses it for all targets. `per_target` reasons separately and requires backend support; Tinker does not support it. `CONCURRENCY` limits online requests; HF instead uses binding-specific GPU `batch_size`. Free-text modes retry only failed JSON parses.
 
@@ -58,6 +58,17 @@ Retryable transport failures receive bounded failed-key sweeps while successful 
 ### Diagnose failures
 
 Empty or partial answers can result from exhausted output budgets, especially on provider-managed thinking paths. Hypothesis parse failures are recorded in `data/hypothesis_eval_parse_failures.json` or `data/hypothesis_generation_parse_failures.json`. Posterior vector validity and recovery semantics are defined in [tasks/README.md](../tasks/README.md#posterior-predict-membership).
+
+Thinking runs (`--thinking` or a reasoning effort) also write `thinking_diagnostics.per_prefix` into each raw cache: for every prefix, one record per generation request in request order (each hypothesis-mode attempt, each text-trial request across recovery phases, or the one shared-prefix thought). Each record has `thinking_tokens` (`null` when the provider does not report it), `forced_close` (thinking hit its budget and was closed by our code), and `truncated` (the answer stopped at its output cap). Sources per path:
+
+| Path | `thinking_tokens` | `forced_close` | `truncated` |
+| --- | --- | --- | --- |
+| HF | Tokens before the close boundary | Budget processor forced the close | No EOS within `max_new_tokens` |
+| Tinker | Re-encoded parsed thought; all sampled tokens for shared thoughts or a response cut mid-thought | Shared thought stopped on `length` | Stopped on `length` |
+| OpenAI-compatible | `reasoning_tokens` from usage; stage-1 completion tokens on two-stage or shared thinking | Stage-1 thought stopped on `length` | `finish_reason == "length"` |
+| Gemini | `thoughts_token_count` | Never (provider-managed) | `finish_reason == MAX_TOKENS` |
+
+Per-target HF posterior thinking records nothing. Caches written before this field existed have no thinking diagnostics.
 
 ## Extend a backend
 

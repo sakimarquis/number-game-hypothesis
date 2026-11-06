@@ -7,9 +7,9 @@ from configs.settings import (
     Experiment,
     HypothesisEvalConfig,
     HypothesisGenerationConfig,
+    MINI_CONDITIONS,
     PosteriorConfig,
-    RUN_PROFILE_NAMES,
-    RunProfile,
+    RUN_PROFILES,
     ScoringPolicy,
     TaskGrid,
     is_baseline_run,
@@ -21,34 +21,10 @@ from configs.settings import (
 from utils import PROJECT_ROOT, load_yaml
 
 
-def _load_run_profile(raw: dict, override: str | None) -> RunProfile:
-    name = override or raw.get("RUN_PROFILE", "full")
-    if name not in RUN_PROFILE_NAMES:
-        raise ValueError(f"Unknown run profile {name!r}; expected one of {RUN_PROFILE_NAMES}")
-    if name != "mini":
-        return RunProfile()
-
-    configured = raw.get("MINI_CONDITIONS")
-    if not isinstance(configured, dict) or not configured:
-        raise ValueError("RUN_PROFILE 'mini' requires a non-empty MINI_CONDITIONS mapping")
-
-    keys = set()
-    for eval_mode, prompts in configured.items():
-        if not isinstance(prompts, list) or not prompts or not all(isinstance(prompt, str) for prompt in prompts):
-            raise ValueError(f"MINI_CONDITIONS.{eval_mode} must be a non-empty list of prompt names")
-        for prompt in prompts:
-            h_space, separator, sampling = prompt.partition("_")
-            if not separator or not h_space or not sampling:
-                raise ValueError(
-                    f"Invalid mini condition prompt {prompt!r}; expected '<h_space>_<sampling>'"
-                )
-            keys.add((eval_mode, h_space, sampling))
-    return RunProfile(condition_keys=frozenset(keys))
-
-
 def _validate_run_profile(experiment: Experiment) -> None:
-    required = experiment.run_profile.condition_keys
-    if required is None:
+    if experiment.run_profile not in RUN_PROFILES:
+        raise ValueError(f"Unknown run profile {experiment.run_profile!r}; expected one of {RUN_PROFILES}")
+    if experiment.run_profile != "mini":
         return
 
     available_by_task = {task: set() for task in experiment.tasks}
@@ -58,9 +34,9 @@ def _validate_run_profile(experiment: Experiment) -> None:
         )
 
     missing = {
-        task: sorted(required - available)
+        task: sorted(MINI_CONDITIONS - available)
         for task, available in available_by_task.items()
-        if not required.issubset(available)
+        if not MINI_CONDITIONS <= available
     }
     if missing:
         details = "; ".join(
@@ -96,56 +72,35 @@ def load_experiment(
             featured_stimuli=list(block["featured_stimuli"]) if block.get("featured_stimuli") else None,
         )
 
-    scoring = ScoringPolicy(
-        max_examples=raw["SCORING"]["max_examples"],
-        trajectory_prefix_horizon=raw["SCORING"]["trajectory_prefix_horizon"],
-        max_retries=raw["SCORING"]["max_retries"],
-    )
-    bayesian = BayesianConfig(
-        lam=raw["BAYESIAN"]["lam"],
-        sigma=raw["BAYESIAN"]["sigma"],
-        natural_intervals=raw["BAYESIAN"]["natural_intervals"],
-    )
-    posterior = PosteriorConfig(
-        method=raw["POSTERIOR"]["method"],
-        n_trials=raw["POSTERIOR"]["n_trials"],
-        temperature=raw["POSTERIOR"]["temperature"],
-        thinking_mode=raw["POSTERIOR"]["thinking_mode"],
-        thinking_budget=raw["POSTERIOR"]["thinking_budget"],
-        top_logprobs_local=raw["POSTERIOR"]["top_logprobs_local"],
-        top_logprobs_openai=raw["POSTERIOR"]["top_logprobs_openai"],
-    )
-    hypothesis_eval = HypothesisEvalConfig(
-        max_tokens=raw["HYPOTHESIS_EVAL"]["max_tokens"],
-        thinking_budget=raw["HYPOTHESIS_EVAL"]["thinking_budget"],
-    )
+    scoring = ScoringPolicy(**raw["SCORING"])
+    bayesian = BayesianConfig(**raw["BAYESIAN"])
+    posterior = PosteriorConfig(**raw["POSTERIOR"])
     backend_config = resolve_backend_config(
         model_info,
         backend=backend,
-        thinking_settings=raw.get("THINKING", {}),
-        posterior=posterior,
+        thinking_settings=raw["THINKING"],
         thinking=thinking,
     )
-    hypothesis_generation = HypothesisGenerationConfig(
-        max_tokens=raw["HYPOTHESIS_GENERATION"]["max_tokens"],
-        n_hypotheses=raw["HYPOTHESIS_GENERATION"]["n_hypotheses"],
-        thinking_budget=raw["HYPOTHESIS_GENERATION"]["thinking_budget"],
-        sampling=load_generation_sampling(model_info.id, backend_config.thinking),
-    )
+    generation_tokens = dict(raw["HYPOTHESIS_GENERATION"])
+    if backend_config.thinking and model_info.thinking_generation_tokens:
+        generation_tokens.update(model_info.thinking_generation_tokens)
 
     experiment = Experiment(
         tasks=tasks,
         scoring=scoring,
         bayesian=bayesian,
         posterior=posterior,
-        hypothesis_eval=hypothesis_eval,
-        hypothesis_generation=hypothesis_generation,
+        hypothesis_eval=HypothesisEvalConfig(**raw["HYPOTHESIS_EVAL"]),
+        hypothesis_generation=HypothesisGenerationConfig(
+            **generation_tokens,
+            sampling=load_generation_sampling(model_info.id, backend_config.thinking),
+        ),
         backend=backend_config,
         model=model,
         seed=raw["SEED"],
         overwrite=raw["OVERWRITE"],
         concurrency=raw["CONCURRENCY"],
-        run_profile=_load_run_profile(raw, run_profile),
+        run_profile=run_profile or raw["RUN_PROFILE"],
     )
     _validate_run_profile(experiment)
     return experiment

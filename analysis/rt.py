@@ -10,18 +10,18 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from scipy.stats import rankdata
 
-from analysis.cache import bayesian_cache_identity, load_bayesian, load_condition_final, task_context
+from analysis.cache import bayesian_baseline, load_condition_final
 from analysis.metrics import safe_correlation
 from analysis.plotter import C_BAYESIAN, C_LLM, save_csv, save_fig, set_mpl, with_model
 from configs.layout import bayesian_cache_dir
 from configs.settings import Experiment, ExperimentCondition
-from tasks.stimuli import bigelow_stimulus
+from tasks.stimuli import bigelow_stimulus, build_task_context
 from utils import PROJECT_ROOT
 
 set_mpl(size=8)
 
 DEFAULT_RT_CSV = os.path.join(PROJECT_ROOT, "dataset", "numbergame_data.csv")
-DEFAULT_PROMPT = ("explicit", "default")
+RT_PROMPT = ("explicit", "default")  # (h_space, sampling) of the LLM posterior compared with RTs
 MIN_SUBJECTS_PER_TARGET = 5
 
 
@@ -60,9 +60,14 @@ def build_rt_uncertainty_pairs(
     llm_preds: dict[str, np.ndarray] | None,
     stimulus_kind: dict[str, str],
     *,
+    llm_log_preds: dict[str, np.ndarray] | None = None,
     min_subjects: int = MIN_SUBJECTS_PER_TARGET,
 ) -> pd.DataFrame:
-    """Align RT rows with 1-based target posterior arrays and entropy columns."""
+    """Align RT rows with 1-based target posterior arrays and entropy columns.
+
+    `llm_log_preds` (smoothed text-trial finals) feed H_llm; omitted, they equal `llm_preds`.
+    """
+    llm_log_preds = llm_preds if llm_log_preds is None else llm_log_preds
     rows = []
     for stimulus_name, targets in rt_by_stimulus.items():
         if stimulus_name not in bayesian_preds:
@@ -87,7 +92,7 @@ def build_rt_uncertainty_pairs(
             }
             if llm is not None:
                 row["p_llm"] = float(llm[idx])
-                row["H_llm"] = float(binary_entropy(llm[idx]))
+                row["H_llm"] = float(binary_entropy(llm_log_preds[stimulus_name][idx]))
             rows.append(row)
     return pd.DataFrame(rows)
 
@@ -134,42 +139,18 @@ def plot_rt_vs_entropy(
     save_fig(fig, output_path)
 
 
-def _select_default_posterior(
-    result_key: str,
-    task: str,
-    domain: int,
-    h_spaces,
-    samplings,
-) -> dict[str, np.ndarray] | None:
-    """Load canonical explicit/default posterior, falling back to first available condition."""
-    candidates = [DEFAULT_PROMPT] + [
-        (h_space, sampling)
-        for h_space in h_spaces
-        for sampling in samplings
-        if (h_space, sampling) != DEFAULT_PROMPT
-    ]
-    for h_space, sampling in candidates:
-        if h_space not in h_spaces or sampling not in samplings:
-            continue
-        posteriors = load_condition_final(ExperimentCondition(task, "posterior", h_space, sampling, domain), result_key)
-        if posteriors:
-            return posteriors
-    return None
-
-
-def run_rt_correlation(experiment: Experiment, output_dir: str, result_key: str, figure_dir: str) -> pd.DataFrame:
+def run_rt_correlation(experiment: Experiment, analysis_dir: str, figure_dir: str) -> pd.DataFrame:
     """Build Bigelow16 RT/entropy pairs and save one CSV plus scatter figures."""
+    result_key = experiment.backend.result_key
     if "Bigelow16" not in experiment.tasks:
         return pd.DataFrame()
 
-    task_factors = experiment.tasks["Bigelow16"]
-    domain = task_factors.domains[0]
-    ctx = task_context(experiment, "Bigelow16", domain)
+    domain = experiment.tasks["Bigelow16"].domains[0]
+    ctx = build_task_context("Bigelow16", domain)
     stimulus_map = ctx.task.stimulus_map
-    bayesian_preds, _ = load_bayesian("Bigelow16", domain, bayesian_cache_identity(experiment, "Bigelow16", domain))
-    llm_preds = _select_default_posterior(
-        result_key, "Bigelow16", domain, task_factors.h_spaces, task_factors.samplings,
-    )
+    bayesian_preds = bayesian_baseline(experiment, "Bigelow16", domain).predictions
+    condition = ExperimentCondition("Bigelow16", "posterior", *RT_PROMPT, domain)
+    llm_preds = load_condition_final(condition, result_key)
 
     rt_by_stimulus = {
         name: targets
@@ -177,12 +158,15 @@ def run_rt_correlation(experiment: Experiment, output_dir: str, result_key: str,
         if name in stimulus_map
     }
     stimulus_kind = {name: stimulus.kind for name, stimulus in stimulus_map.items()}
-    df = build_rt_uncertainty_pairs(rt_by_stimulus, bayesian_preds, llm_preds, stimulus_kind)
+    df = build_rt_uncertainty_pairs(
+        rt_by_stimulus, bayesian_preds, llm_preds, stimulus_kind,
+        llm_log_preds=load_condition_final(condition, result_key, log_space=True),
+    )
     if df.empty:
         print("  rt_correlation: no aligned (stimulus, target) rows, skipping")
         return df
 
-    save_csv(df, output_dir, "rt_correlation_pairs.csv")
+    save_csv(df, analysis_dir, "rt_correlation_pairs.csv")
     plot_rt_vs_entropy(df, "bayesian", os.path.join(bayesian_cache_dir("Bigelow16", domain), "rt_vs_entropy_bayesian.png"))
     if llm_preds is not None:
         plot_rt_vs_entropy(df, "llm", os.path.join(figure_dir, "rt_vs_entropy_llm.png"), result_key)

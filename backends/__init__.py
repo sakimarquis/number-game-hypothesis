@@ -19,7 +19,6 @@ def create_backend(backend_config: BackendConfig, concurrency: int = 8):
                           reasoning_effort=backend_config.reasoning_effort,
                           top_logprobs=backend_config.top_logprobs,
                           thinking_protocol=binding.thinking_protocol,
-                          supports_logprobs=backend_config.supports_logprobs,
                           supports_json_schema=binding.supports_json_schema)
     if backend == "google_cloud":
         from backends.google_cloud import GoogleCloudBackend
@@ -28,8 +27,9 @@ def create_backend(backend_config: BackendConfig, concurrency: int = 8):
             api_key_env=binding.api_key_env,
             concurrency=concurrency,
             enable_thinking=backend_config.enable_thinking,
-            execution=backend_config.execution,
+            execution=binding.execution,
             batch_priority=binding.batch_priority,
+            supports_json_schema=binding.supports_json_schema,
             batch_root=os.path.join(model_root(backend_config.result_key), "batch"),
         )
     if backend == "hf":

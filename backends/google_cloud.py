@@ -10,7 +10,7 @@ from google.genai import types
 from backends.base import Backend, GenerateResult
 from backends.gemini_batch import GeminiBatchExecutor
 from configs.layout import condition_batch_key
-from configs.settings import GenerationSamplingConfig
+from configs.settings import GREEDY, GenerationSamplingConfig
 
 
 MEDIUM_THINKING_HEADROOM_TOKENS = 2048
@@ -21,8 +21,6 @@ BATCH_JOB_CONCURRENCY = 4
 class GoogleCloudBackend(Backend):
     """Gemini generation through the native Gemini Developer API (no logprob path)."""
 
-    supports_logprobs = False
-    supports_json_schema = True
     minimum_thinking_headroom_tokens = MEDIUM_THINKING_HEADROOM_TOKENS
     structured_recovery_thinking_headroom_tokens = STRUCTURED_RECOVERY_THINKING_HEADROOM_TOKENS
 
@@ -36,6 +34,7 @@ class GoogleCloudBackend(Backend):
         execution: str = "online",
         batch_priority: int = 0,
         batch_root: str | None = None,
+        supports_json_schema: bool = False,
     ):
         if execution not in {"batch", "online"}:
             raise ValueError(f"Unknown Gemini execution mode: {execution!r}")
@@ -48,6 +47,7 @@ class GoogleCloudBackend(Backend):
         self.client = genai.Client(api_key=api_key)
         self.model_id = model_id
         self.enable_thinking = enable_thinking
+        self.supports_json_schema = supports_json_schema
         self.batch_api_enabled = execution == "batch"
         self.semaphore = asyncio.Semaphore(concurrency)
         self.batch_job_concurrency = min(concurrency, BATCH_JOB_CONCURRENCY)
@@ -84,22 +84,20 @@ class GoogleCloudBackend(Backend):
         self,
         *,
         max_output_tokens: int,
-        generation_config: GenerationSamplingConfig | None,
+        generation_config: GenerationSamplingConfig,
         response_json_schema: dict | None,
     ):
-        if generation_config is not None:
-            # Gemini 3.x rejects explicit temperature/top-p/top-k controls, so the
-            # shared sampling fields are deliberately not forwarded.
-            unsupported = [
-                name for name in ("min_p", "presence_penalty", "repetition_penalty")
-                if getattr(generation_config, name) is not None
-            ]
-            if unsupported:
-                raise ValueError(f"google_cloud does not support generation parameters: {', '.join(unsupported)}")
+        # Gemini 3.x rejects explicit temperature/top-p/top-k controls, so the
+        # shared sampling fields are deliberately not forwarded.
+        unsupported = [
+            name for name in ("min_p", "presence_penalty", "repetition_penalty")
+            if getattr(generation_config, name) is not None
+        ]
+        if unsupported:
+            raise ValueError(f"google_cloud does not support generation parameters: {', '.join(unsupported)}")
         kwargs = {
             "thinking_config": types.ThinkingConfig(
                 thinking_level=types.ThinkingLevel.MEDIUM if self.enable_thinking else types.ThinkingLevel.MINIMAL,
-                include_thoughts=self.enable_thinking,
             ),
             "max_output_tokens": max_output_tokens,
         }
@@ -122,44 +120,29 @@ class GoogleCloudBackend(Backend):
             )
 
     @staticmethod
-    def _response_text(response, *, thought: bool) -> str:
+    def _response_fields(response) -> dict:
+        """JSON-safe GenerateResult fields: visible answer text (thought summaries excluded) plus thinking usage."""
         if not response.candidates:
             raise RuntimeError("Gemini returned no candidates.")
-        parts = getattr(response.candidates[0].content, "parts", None) or []
-        return "".join(
-            str(part.text)
-            for part in parts
-            if getattr(part, "text", None) and bool(getattr(part, "thought", False)) is thought
+        candidate = response.candidates[0]
+        parts = getattr(candidate.content, "parts", None) or []
+        text = "".join(
+            str(part.text) for part in parts if getattr(part, "text", None) and not getattr(part, "thought", False)
         ).strip()
+        usage = response.usage_metadata
+        return {
+            "text": text,
+            "thinking_tokens": usage.thoughts_token_count if usage else None,
+            "truncated": candidate.finish_reason == types.FinishReason.MAX_TOKENS,
+        }
 
     async def generate(
         self,
-        messages: list[dict],
-        max_tokens: int = 1,
-        temperature: float = 0.0,
-        *,
-        thinking_budget: int | None = None,
-        generation_config: GenerationSamplingConfig | None = None,
-        response_json_schema: dict | None = None,
-    ) -> GenerateResult:
-        results = await self.generate_batch(
-            [messages],
-            max_tokens=max_tokens,
-            temperature=temperature,
-            thinking_budget=thinking_budget,
-            generation_config=generation_config,
-            response_json_schema=response_json_schema,
-        )
-        return results[0]
-
-    async def generate_batch(
-        self,
         messages_list: list[list[dict]],
         max_tokens: int = 1,
-        temperature: float = 0.0,
         *,
         thinking_budget: int | None = None,
-        generation_config: GenerationSamplingConfig | None = None,
+        generation_config: GenerationSamplingConfig = GREEDY,
         response_json_schema: dict | None = None,
         batch_key: str | None = None,
     ) -> list[GenerateResult]:
@@ -185,23 +168,18 @@ class GoogleCloudBackend(Backend):
             for messages in messages_list
         ]
 
-        def decode(response):
-            return [
-                self._response_text(response, thought=False),
-                self._response_text(response, thought=True) if self.enable_thinking else "",
-            ]
-
         if self.batch_api_enabled:
             for index, request in enumerate(requests):
                 request.metadata = {"key": str(index)}
             async with self.batch_semaphore:
-                values = await self.batch.run(requests, batch_key=batch_key or uuid.uuid4().hex, decode=decode)
+                fields = await self.batch.run(requests, batch_key=batch_key or uuid.uuid4().hex, decode=self._response_fields)
         else:
             responses = await asyncio.gather(*[self._online_request(request) for request in requests])
-            values = [decode(response) for response in responses]
-        return [GenerateResult(text=text, thinking_text=thinking) for text, thinking in values]
+            fields = [self._response_fields(response) for response in responses]
+        return [GenerateResult(**row) for row in fields]
 
     async def release_batch_sidecars(self, condition) -> None:
         if self.batch is not None:
+            # Every batch key of a condition extends its eval-mode key (see scoring/eval_modes.py).
             await self.batch.cleanup(condition_batch_key(condition, condition.eval_mode))
 
